@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+VENV/
+*.egg-info/
+
+# Environment variables
+.env
+.env.local
+.env.production
+*.env
+
+# App Engine
+app.temp.yaml
+app.secure.yaml
+app.production.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Google Cloud
+.gcloud/
+*.log
+
+# Deployment
+deploy.sh

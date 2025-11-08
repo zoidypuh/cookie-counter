@@ -1,0 +1,25 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud.
+
+.gcloudignore
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+# Environment variables
+.env
+app.production.yaml
+app.secure.yaml
+app.temp.yaml
+
+# Development files
+README.md
+DEPLOYMENT_INSTRUCTIONS.md
+percentage_explanation.md
+deploy.sh

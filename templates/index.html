@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ cookie_count }} still in jar</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text x='50%25' y='50%25' font-size='48' text-anchor='middle' dominant-baseline='central'>🍪</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <main>
+            <div class="stats-container">
+                <div class="cookie-count">
+                    <span class="count">{{ cookie_count }}</span>
+                    <span class="unit">cookies</span>
+                </div>
+            </div>
+            <div class="pnl-container">
+                <div class="pnl-display {{ pnl_class }}" style="color: {{ pnl_color }}">
+                    {{ pnl_text }}
+                </div>
+            </div>
+            
+            <div class="gif-container">
+                {% if pnl_percentage > 0 %}
+                    <img src="{{ url_for('static', filename='trump-winning.gif') }}" alt="Winning" class="pnl-gif">
+                {% else %}
+                    <img src="{{ url_for('static', filename='trump-losing.gif') }}" alt="Losing" class="pnl-gif">
+                {% endif %}
+            </div>
+            
+            <p></p>
+            <p></p>
+            
+            <div class="cookie-section">
+                <div class="jar-label">cookies still in jar</div>
+                <div class="cookie-grid">
+                    {% for cookie in cookie_grid %}
+                    <div class="cookie-item">
+                        <span class="cookie-emoji">🍪</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% if cookie_count == 0 %}
+            <div class="no-cookies-message">
+                <p>No cookies yet! 🥺</p>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>
+
