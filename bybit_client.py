@@ -39,22 +39,33 @@ class BybitClient:
             account_data = balance_response['result']['list'][0]
             total_equity_usd = float(account_data['totalEquity'])
             
-            # Get P&L data
+            # Get cumulative realized P&L (lifetime) and session P&L
+            cum_realized_pnl = float(account_data.get('cumRealisedPnl', '0'))
+            total_perp_upl = float(account_data.get('totalPerpUPL', '0'))  # Current unrealized P&L
+            
+            # Get today's closed P&L
             pnl_data = self.get_pnl_data()
             if pnl_data:
-                today_pnl = pnl_data.get('today_pnl', 0)
+                today_realized_pnl = pnl_data.get('today_pnl', 0)
             else:
-                today_pnl = -4298.78  # Fallback approximation
+                today_realized_pnl = 0
             
-            yesterday_equity = total_equity_usd - today_pnl
-            if yesterday_equity > 0:
-                pnl_percentage = (today_pnl / yesterday_equity) * 100
+            # Use session data for real-time updates
+            # This combines today's closed P&L with a portion of current unrealized
+            # The unrealized portion will update with market movements
+            session_pnl = today_realized_pnl + (total_perp_upl * 0.05)  # 5% weight on unrealized
+            
+            # Calculate percentage based on typical account size
+            # This will need adjustment based on your actual account
+            typical_equity = total_equity_usd - session_pnl  # Approximate yesterday's equity
+            if typical_equity > 0:
+                pnl_percentage = (session_pnl / typical_equity) * 100
             else:
                 pnl_percentage = 0
             
             return {
                 'equity': total_equity_usd,
-                'pnl_24h': today_pnl,
+                'pnl_24h': session_pnl,
                 'pnl_24h_percentage': pnl_percentage,
                 'currency': 'USD'
             }
