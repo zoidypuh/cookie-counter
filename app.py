@@ -1,8 +1,25 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from bybit_client import BybitClient
 
 app = Flask(__name__)
+
+@app.route('/collect-equity')
+def collect_equity():
+    """Endpoint for hourly equity collection (called by Cloud Scheduler)"""
+    try:
+        # Import here to avoid circular imports
+        from collect_equity import collect_equity_snapshot
+
+        success = collect_equity_snapshot()
+
+        if success:
+            return jsonify({'status': 'success', 'message': 'Equity snapshot collected'}), 200
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to collect equity'}), 500
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 def get_cookie_data():
     try:
