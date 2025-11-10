@@ -47,9 +47,10 @@ class BybitClient:
         except:
             return None
     
-    def get_24h_equity_data(self) -> List[Dict]:
+    def get_24h_equity_data(self, ds=None) -> List[Dict]:
         """Get equity snapshots from the last 24 hours"""
-        if not self.datastore_client:
+        ds = ds or self.datastore_client
+        if not ds:
             return []
 
         try:
@@ -57,7 +58,7 @@ class BybitClient:
             cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
 
             data = []
-            query = self.datastore_client.query(kind=KIND_EQUITY)
+            query = ds.query(kind=KIND_EQUITY)
             query.add_filter('timestamp', '>=', cutoff_time)
             query.order = ['-timestamp']
 
@@ -83,47 +84,84 @@ class BybitClient:
             account_data = balance_response['result']['list'][0]
             total_equity_usd = float(account_data['totalEquity'])
 
-            # Try to get true 24h rolling P&L from stored equity data
-            use_datastore = datastore_override or self.datastore_client is not None
-            equity_24h_data = self.get_24h_equity_data() if use_datastore else []
+            now = datetime.now(timezone.utc)
 
-            if equity_24h_data and len(equity_24h_data) >= 2:
-                # Sort by timestamp (most recent first)
-                equity_24h_data.sort(key=lambda x: x['timestamp'], reverse=True)
+            # Prepare default values
+            pnl_1h = None
+            pnl_1h_pct = None
+            pnl_1h_source = 'missing'
+            pnl_1h_hours = None
 
-                # Current equity (most recent snapshot)
-                current_equity = equity_24h_data[0]['equity']
+            pnl_24h = None
+            pnl_24h_pct = None
+            pnl_24h_source = 'approx'
+            pnl_24h_hours = None
 
-                # Equity approximately 24 hours ago (oldest snapshot in range)
-                equity_24h_ago = equity_24h_data[-1]['equity']
+            # Try to get true rolling data from Datastore
+            ds_client = self.datastore_client
+            if datastore_override and not ds_client:
+                ds_client = self._init_datastore()
 
-                # Calculate true 24h P&L and percentage
-                pnl_24h = current_equity - equity_24h_ago
-                pnl_percentage = (pnl_24h / equity_24h_ago) * 100 if equity_24h_ago > 0 else 0
+            equity_data = self.get_24h_equity_data(ds_client) if ds_client else []
 
-                print(f"✅ Using true 24h data: Current ${current_equity:.2f}, 24h ago ${equity_24h_ago:.2f}, P&L ${pnl_24h:.2f} ({pnl_percentage:.2f}%)")
+            if equity_data:
+                equity_data.sort(key=lambda x: x['timestamp'], reverse=True)
+                current_equity_snapshot = equity_data[0]
+                current_equity = total_equity_usd  # Live equity
 
-            else:
-                # Fallback to approximate calculation if no 24h data available
+                def find_snapshot(hours: float):
+                    target = now - timedelta(hours=hours)
+                    for entry in equity_data:
+                        if entry['timestamp'] <= target:
+                            return entry
+                    return None
+
+                # 1 hour change
+                snap_1h = find_snapshot(1.0)
+                if not snap_1h and len(equity_data) > 1:
+                    snap_1h = equity_data[1]
+                if snap_1h:
+                    base_equity = snap_1h['equity']
+                    pnl_1h = current_equity - base_equity
+                    pnl_1h_pct = (pnl_1h / base_equity) * 100 if base_equity > 0 else 0
+                    pnl_1h_hours = max(0.01, (now - snap_1h['timestamp']).total_seconds() / 3600)
+                    pnl_1h_source = 'true' if (now - snap_1h['timestamp']).total_seconds() >= 3600 else 'fallback'
+
+                # 24 hour change
+                snap_24h = find_snapshot(24.0)
+                if snap_24h:
+                    base_24h = snap_24h['equity']
+                    pnl_24h = current_equity - base_24h
+                    pnl_24h_pct = (pnl_24h / base_24h) * 100 if base_24h > 0 else 0
+                    pnl_24h_hours = max(0.01, (now - snap_24h['timestamp']).total_seconds() / 3600)
+                    pnl_24h_source = 'true'
+
+            # Fallbacks when datastore is unavailable or incomplete
+            if pnl_1h is None:
+                pnl_1h = 0.0
+                pnl_1h_pct = 0.0
+                pnl_1h_source = 'missing'
+
+            if pnl_24h is None:
                 print("⚠️  No 24h data available, using approximate calculation")
-
                 total_perp_upl = float(account_data.get('totalPerpUPL', '0'))  # Current unrealized P&L
-
-                # Get today's closed P&L
                 pnl_data = self.get_pnl_data()
                 today_realized_pnl = pnl_data.get('today_pnl', 0) if pnl_data else 0
-
-                # Use session data for real-time updates
-                pnl_24h = today_realized_pnl + (total_perp_upl * 0.05)  # 5% weight on unrealized
-
-                # Calculate percentage based on typical account size
-                typical_equity = total_equity_usd - pnl_24h  # Approximate yesterday's equity
-                pnl_percentage = (pnl_24h / typical_equity) * 100 if typical_equity > 0 else 0
+                pnl_24h = today_realized_pnl + (total_perp_upl * 0.05)  # Approximate
+                typical_equity = total_equity_usd - pnl_24h
+                pnl_24h_pct = (pnl_24h / typical_equity) * 100 if typical_equity > 0 else 0
+                pnl_24h_source = 'approx'
 
             return {
                 'equity': total_equity_usd,
+                'pnl_1h': pnl_1h,
+                'pnl_1h_percentage': pnl_1h_pct,
+                'pnl_1h_source': pnl_1h_source,
+                'pnl_1h_hours': pnl_1h_hours,
                 'pnl_24h': pnl_24h,
-                'pnl_24h_percentage': pnl_percentage,
+                'pnl_24h_percentage': pnl_24h_pct,
+                'pnl_24h_source': pnl_24h_source,
+                'pnl_24h_hours': pnl_24h_hours,
                 'currency': 'USD'
             }
 

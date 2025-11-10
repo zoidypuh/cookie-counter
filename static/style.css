@@ -64,6 +64,14 @@ main {
     transition: all 0.3s ease;
 }
 
+.pnl-display .pnl-line {
+    margin-bottom: 6px;
+}
+
+.pnl-display .pnl-line:last-child {
+    margin-bottom: 0;
+}
+
 .pnl-display.gain {
     font-size: 1.4rem;
     font-weight: 700;
