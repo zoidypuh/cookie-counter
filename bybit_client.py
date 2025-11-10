@@ -1,15 +1,16 @@
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from datetime import datetime, timezone, timedelta
 from pybit.unified_trading import HTTP
 from dotenv import load_dotenv
-import firebase_admin
-from firebase_admin import firestore, initialize_app
+from google.cloud import datastore
 
 load_dotenv()
 
+KIND_EQUITY = 'EquitySnapshot'
+
 class BybitClient:
-    def __init__(self):
+    def __init__(self, use_datastore: Optional[bool] = None):
         api_key = os.getenv('key') or os.getenv('BYBIT_API_KEY')
         api_secret = os.getenv('secret') or os.getenv('BYBIT_API_SECRET')
 
@@ -22,23 +23,18 @@ class BybitClient:
             api_secret=api_secret,
         )
 
-        # Initialize Firestore (only on GAE or if credentials available)
-        self.db = self._init_firestore()
+        # Determine whether to use Datastore
+        if use_datastore is None:
+            use_datastore = bool(os.getenv('GAE_ENV'))
 
-    def _init_firestore(self):
-        """Initialize Firestore connection"""
+        self.datastore_client = self._init_datastore() if use_datastore else None
+
+    def _init_datastore(self):
+        """Initialize Datastore client"""
         try:
-            if os.getenv('GAE_ENV'):
-                # Running on GAE - use default credentials
-                try:
-                    firebase_admin.get_app()
-                except ValueError:
-                    initialize_app()
-                return firestore.client()
-            else:
-                # Local development - no Firestore
-                return None
-        except Exception:
+            return datastore.Client()
+        except Exception as e:
+            print(f"⚠️  Datastore init failed: {e}")
             return None
     
     def get_wallet_balance(self) -> Dict:
@@ -51,26 +47,24 @@ class BybitClient:
         except:
             return None
     
-    def get_24h_equity_data(self):
+    def get_24h_equity_data(self) -> List[Dict]:
         """Get equity snapshots from the last 24 hours"""
-        if not self.db:
+        if not self.datastore_client:
             return []
 
         try:
             # Get snapshots from last 24 hours
             cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
 
-            snapshots = self.db.collection('equity_snapshots') \
-                .where('timestamp', '>=', cutoff_time) \
-                .order_by('timestamp', direction=firestore.Query.DESCENDING) \
-                .stream()
-
             data = []
-            for doc in snapshots:
-                snap = doc.to_dict()
+            query = self.datastore_client.query(kind=KIND_EQUITY)
+            query.add_filter('timestamp', '>=', cutoff_time)
+            query.order = ['-timestamp']
+
+            for entity in query.fetch():
                 data.append({
-                    'timestamp': snap['timestamp'],
-                    'equity': snap['equity']
+                    'timestamp': entity['timestamp'],
+                    'equity': float(entity['equity'])
                 })
 
             return data
@@ -79,7 +73,7 @@ class BybitClient:
             print(f"Error fetching 24h equity data: {e}")
             return []
 
-    def get_account_info(self) -> Optional[Dict]:
+    def get_account_info(self, datastore_override: bool = False) -> Optional[Dict]:
         try:
             balance_response = self.get_wallet_balance()
 
@@ -90,7 +84,8 @@ class BybitClient:
             total_equity_usd = float(account_data['totalEquity'])
 
             # Try to get true 24h rolling P&L from stored equity data
-            equity_24h_data = self.get_24h_equity_data()
+            use_datastore = datastore_override or self.datastore_client is not None
+            equity_24h_data = self.get_24h_equity_data() if use_datastore else []
 
             if equity_24h_data and len(equity_24h_data) >= 2:
                 # Sort by timestamp (most recent first)
@@ -99,7 +94,7 @@ class BybitClient:
                 # Current equity (most recent snapshot)
                 current_equity = equity_24h_data[0]['equity']
 
-                # Equity exactly 24 hours ago (oldest snapshot in range)
+                # Equity approximately 24 hours ago (oldest snapshot in range)
                 equity_24h_ago = equity_24h_data[-1]['equity']
 
                 # Calculate true 24h P&L and percentage
@@ -112,8 +107,6 @@ class BybitClient:
                 # Fallback to approximate calculation if no 24h data available
                 print("⚠️  No 24h data available, using approximate calculation")
 
-                # Get cumulative realized P&L (lifetime) and session P&L
-                cum_realized_pnl = float(account_data.get('cumRealisedPnl', '0'))
                 total_perp_upl = float(account_data.get('totalPerpUPL', '0'))  # Current unrealized P&L
 
                 # Get today's closed P&L

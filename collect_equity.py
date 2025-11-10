@@ -1,42 +1,34 @@
 #!/usr/bin/env python3
 """
 Hourly equity collector for Bybit Cookie Counter
-Stores equity snapshots in Firestore for 24h rolling window calculations
+Stores equity snapshots in Datastore (Firestore Datastore mode) for 24h rolling window calculations
 """
 
 import os
 from datetime import datetime, timezone, timedelta
-import firebase_admin
-from firebase_admin import credentials, firestore, initialize_app
+from google.cloud import datastore
 from dotenv import load_dotenv
 from bybit_client import BybitClient
 
 # Load environment variables
 load_dotenv()
 
-def init_firestore():
-    """Initialize Firestore connection"""
-    # For Google Cloud App Engine, credentials are automatically available
-    if os.getenv('GAE_ENV'):
-        # Running on GAE - use default credentials
-        try:
-            firebase_admin.get_app()
-        except ValueError:
-            initialize_app()
-    else:
-        # Local development - would need service account key
-        # For now, we'll skip Firestore locally and just print
-        print("⚠️  Local mode - Firestore not initialized")
-        return None
+KIND = 'EquitySnapshot'
 
-    return firestore.client()
+def init_datastore():
+    """Initialize Datastore client"""
+    if os.getenv('GAE_ENV'):
+        return datastore.Client()
+    else:
+        print("⚠️  Local mode - Datastore not initialized")
+        return None
 
 def collect_equity_snapshot():
     """Collect and store current equity snapshot"""
     try:
         # Get current equity
-        client = BybitClient()
-        account_info = client.get_account_info()
+        client = BybitClient(use_datastore=True)
+        account_info = client.get_account_info(datastore_override=True)
 
         if not account_info:
             print("❌ Failed to get account info")
@@ -48,16 +40,17 @@ def collect_equity_snapshot():
         # Create hour key for easy querying (YYYY-MM-DD-HH)
         hour_key = now.strftime('%Y-%m-%d-%H')
 
-        # Store in Firestore
-        db = init_firestore()
-        if db:
-            doc_ref = db.collection('equity_snapshots').document(hour_key)
-
-            doc_ref.set({
+        # Store in Datastore
+        ds = init_datastore()
+        if ds:
+            key = ds.key(KIND, hour_key)
+            entity = datastore.Entity(key=key)
+            entity.update({
                 'timestamp': now,
                 'equity': current_equity,
-                'hour_key': hour_key
+                'hour_key': hour_key,
             })
+            ds.put(entity)
 
             print(f"✅ Stored equity snapshot: ${current_equity:.2f} at {now}")
         else:
@@ -65,7 +58,7 @@ def collect_equity_snapshot():
             print(f"📊 Local mode - would store: ${current_equity:.2f} at {now}")
 
         # Clean up old snapshots (keep only last 25 hours)
-        cleanup_old_snapshots(db, now)
+        cleanup_old_snapshots(ds, now)
 
         return True
 
@@ -73,51 +66,46 @@ def collect_equity_snapshot():
         print(f"❌ Error collecting equity: {e}")
         return False
 
-def cleanup_old_snapshots(db, current_time):
+def cleanup_old_snapshots(ds, current_time):
     """Remove snapshots older than 25 hours"""
-    if not db:
+    if not ds:
         return
 
     try:
         cutoff_time = current_time - timedelta(hours=25)
 
-        # Query for old snapshots
-        old_snapshots = db.collection('equity_snapshots') \
-            .where('timestamp', '<', cutoff_time) \
-            .stream()
+        query = ds.query(kind=KIND)
+        query.add_filter('timestamp', '<', cutoff_time)
 
-        deleted_count = 0
-        for doc in old_snapshots:
-            doc.reference.delete()
-            deleted_count += 1
+        deleted = 0
+        for entity in query.fetch():
+            ds.delete(entity.key)
+            deleted += 1
 
-        if deleted_count > 0:
-            print(f"🧹 Cleaned up {deleted_count} old snapshots")
+        if deleted > 0:
+            print(f"🧹 Cleaned up {deleted} old snapshots")
 
     except Exception as e:
         print(f"⚠️  Error cleaning up snapshots: {e}")
 
-def get_24h_equity_data():
+def get_24h_equity_data(ds=None):
     """Get equity data for the last 24 hours (for testing/debugging)"""
-    db = init_firestore()
-    if not db:
+    ds = ds or init_datastore()
+    if not ds:
         return []
 
     try:
-        # Get snapshots from last 24 hours
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
 
-        snapshots = db.collection('equity_snapshots') \
-            .where('timestamp', '>=', cutoff_time) \
-            .order_by('timestamp', direction=firestore.Query.DESCENDING) \
-            .stream()
+        query = ds.query(kind=KIND)
+        query.add_filter('timestamp', '>=', cutoff_time)
+        query.order = ['-timestamp']
 
         data = []
-        for doc in snapshots:
-            snap = doc.to_dict()
+        for entity in query.fetch():
             data.append({
-                'timestamp': snap['timestamp'],
-                'equity': snap['equity']
+                'timestamp': entity['timestamp'],
+                'equity': entity['equity']
             })
 
         return data
@@ -133,11 +121,11 @@ if __name__ == '__main__':
     success = collect_equity_snapshot()
 
     if success:
-        # Show current 24h data for debugging
-        data_24h = get_24h_equity_data()
+        ds = init_datastore()
+        data_24h = get_24h_equity_data(ds)
         if data_24h:
             print(f"\n📈 Last 24h equity data ({len(data_24h)} snapshots):")
-            for snap in data_24h[:5]:  # Show first 5
+            for snap in data_24h[:5]:
                 print(f"  {snap['timestamp'].strftime('%Y-%m-%d %H:%M')} UTC: ${snap['equity']:.2f}")
             if len(data_24h) > 5:
                 print(f"  ... and {len(data_24h) - 5} more")
