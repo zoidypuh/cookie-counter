@@ -6,6 +6,7 @@ Stores equity snapshots in Firestore for 24h rolling window calculations
 
 import os
 from datetime import datetime, timezone, timedelta
+import firebase_admin
 from firebase_admin import credentials, firestore, initialize_app
 from dotenv import load_dotenv
 from bybit_client import BybitClient
@@ -18,7 +19,10 @@ def init_firestore():
     # For Google Cloud App Engine, credentials are automatically available
     if os.getenv('GAE_ENV'):
         # Running on GAE - use default credentials
-        initialize_app()
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            initialize_app()
     else:
         # Local development - would need service account key
         # For now, we'll skip Firestore locally and just print

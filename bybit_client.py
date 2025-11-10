@@ -3,6 +3,7 @@ from typing import Dict, Optional
 from datetime import datetime, timezone, timedelta
 from pybit.unified_trading import HTTP
 from dotenv import load_dotenv
+import firebase_admin
 from firebase_admin import firestore, initialize_app
 
 load_dotenv()
@@ -29,7 +30,10 @@ class BybitClient:
         try:
             if os.getenv('GAE_ENV'):
                 # Running on GAE - use default credentials
-                initialize_app()
+                try:
+                    firebase_admin.get_app()
+                except ValueError:
+                    initialize_app()
                 return firestore.client()
             else:
                 # Local development - no Firestore
