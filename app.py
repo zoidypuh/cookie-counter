@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from bybit_client import BybitClient
 
 app = Flask(__name__)
@@ -20,6 +20,35 @@ def collect_equity():
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/siri')
+def siri_summary():
+    """
+    Lightweight endpoint for Siri Shortcuts to fetch cookie status.
+    Returns plain text by default; add ?format=json for a JSON response.
+    """
+    data = get_cookie_data()
+
+    if not data:
+        message = "I couldn't reach the cookie tracker right now."
+    else:
+        count = data.get('cookie_count', 0)
+        pnl_text = data.get('pnl_text', '')
+
+        if count == 0:
+            message = "You have no cookies in the jar right now."
+        else:
+            message = f"You have {count} cookies still in the jar. {pnl_text}"
+
+    if 'json' in (request.args.get('format') or '').lower():
+        return jsonify({
+            'message': message,
+            'cookie_count': data.get('cookie_count') if data else None,
+            'pnl_text': data.get('pnl_text') if data else None,
+            'pnl_percentage': data.get('pnl_percentage') if data else None,
+        })
+
+    return message, 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 def get_cookie_data():
     try:
