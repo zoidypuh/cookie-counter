@@ -66,10 +66,23 @@ main {
 
 .pnl-display .pnl-line {
     margin-bottom: 6px;
+    color: inherit;
 }
 
 .pnl-display .pnl-line:last-child {
     margin-bottom: 0;
+}
+
+.pnl-display .pnl-line.gain {
+    color: #4CAF50;
+}
+
+.pnl-display .pnl-line.loss {
+    color: #F44336;
+}
+
+.pnl-display .pnl-line.neutral {
+    color: #9E9E9E;
 }
 
 .pnl-display.gain {

@@ -25,9 +25,9 @@
                 </div>
             </div>
             <div class="pnl-container">
-                <div class="pnl-display {{ pnl_class }}" style="color: {{ pnl_color }}">
+                <div class="pnl-display {{ pnl_class }}">
                     {% for line in pnl_lines %}
-                    <div class="pnl-line">{{ line }}</div>
+                    <div class="pnl-line {{ line.class }}">{{ line.text }}</div>
                     {% endfor %}
                 </div>
             </div>

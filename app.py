@@ -31,10 +31,12 @@ def siri_summary():
 
     if not data:
         message = "I couldn't reach the cookie tracker right now."
+        line_dicts = []
     else:
         count = data.get('cookie_count', 0)
-        lines = data.get('pnl_lines') or [data.get('pnl_text', '')]
-        summary = ' '.join(line for line in lines if line)
+        line_dicts = data.get('pnl_lines') or []
+        line_texts = [line.get('text') for line in line_dicts if line and line.get('text')]
+        summary = ' '.join(line_texts)
 
         if count == 0:
             message = "You have no cookies in the jar right now."
@@ -43,16 +45,40 @@ def siri_summary():
             if summary:
                 message += f" {summary}"
 
+    line_json = [
+        {
+            'text': line.get('text'),
+            'class': line.get('class'),
+            'color': line.get('color')
+        }
+        for line in line_dicts
+    ] if line_dicts else []
+
     if 'json' in (request.args.get('format') or '').lower():
         return jsonify({
             'message': message,
             'cookie_count': data.get('cookie_count') if data else None,
             'pnl_text': data.get('pnl_text') if data else None,
-            'pnl_lines': data.get('pnl_lines') if data else None,
+            'pnl_lines': line_json,
             'pnl_percentage': data.get('pnl_percentage') if data else None,
         })
 
     return message, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+GAIN_COLOR = '#4CAF50'
+LOSS_COLOR = '#F44336'
+NEUTRAL_COLOR = '#9E9E9E'
+
+
+def classify_change(value):
+    if value is None:
+        return 'neutral', NEUTRAL_COLOR
+    if value > 0:
+        return 'gain', GAIN_COLOR
+    if value < 0:
+        return 'loss', LOSS_COLOR
+    return 'neutral', NEUTRAL_COLOR
+
 
 def format_change_line(pnl_value, pnl_pct, window_label, source='true', hours=None):
     """
@@ -63,30 +89,41 @@ def format_change_line(pnl_value, pnl_pct, window_label, source='true', hours=No
     source: 'true', 'approx', 'fallback', 'missing'
     hours: number of hours between snapshots (for fallback messaging)
     """
-    if pnl_value is None or source == 'missing':
-        return f"{window_label.capitalize()} change unavailable yet."
+    line = {'text': '', 'class': 'neutral', 'color': NEUTRAL_COLOR}
 
+    if pnl_value is None or source == 'missing':
+        line['text'] = f"{window_label.capitalize()} change unavailable yet."
+        return line
+
+    line['class'], line['color'] = classify_change(pnl_value)
     cookies_delta = pnl_value / 1000  # 1 cookie = $1,000
     pct_text = f"({pnl_pct:+.2f}%)" if pnl_pct is not None else ""
 
     if abs(cookies_delta) < 0.01:
         if source == 'approx':
-            return f"No meaningful change in the {window_label} yet (approximate)."
-        return f"No meaningful change in the {window_label}."
+            line['text'] = f"No meaningful change in the {window_label} yet (approximate)."
+        else:
+            line['text'] = f"No meaningful change in the {window_label}."
+        line['class'], line['color'] = 'neutral', NEUTRAL_COLOR
+        return line
 
     direction = "gained" if cookies_delta > 0 else "lost"
     cookies_text = f"{abs(cookies_delta):.2f} cookies {direction}"
 
     if source == 'true':
-        return f"{cookies_text} in the {window_label} {pct_text}".strip()
+        line['text'] = f"{cookies_text} in the {window_label} {pct_text}".strip()
     if source == 'fallback':
         if hours:
-            return f"{cookies_text} since {hours:.1f} hours ago {pct_text} (closest snapshot available).".strip()
-        return f"{cookies_text} since the previous snapshot {pct_text} (closest snapshot available).".strip()
+            line['text'] = f"{cookies_text} since {hours:.1f} hours ago {pct_text} (closest snapshot available).".strip()
+        else:
+            line['text'] = f"{cookies_text} since the previous snapshot {pct_text} (closest snapshot available).".strip()
     if source == 'approx':
-        return f"24h change unavailable yet. Using today's performance: {cookies_text} {pct_text}".strip()
+        line['text'] = f"24h change unavailable yet. Using today's performance: {cookies_text} {pct_text}".strip()
+        return line
 
-    return f"{cookies_text} in the {window_label} {pct_text}".strip()
+    if not line['text']:
+        line['text'] = f"{cookies_text} in the {window_label} {pct_text}".strip()
+    return line
 
 
 def get_cookie_data():
@@ -111,13 +148,13 @@ def get_cookie_data():
             }
         
         equity = account_info['equity']
-        pnl_24h = account_info.get('pnl_24h', 0)
-        pnl_24h_percentage = account_info.get('pnl_24h_percentage', 0)
+        pnl_24h = account_info.get('pnl_24h')
+        pnl_24h_percentage = account_info.get('pnl_24h_percentage')
         pnl_24h_source = account_info.get('pnl_24h_source', 'approx')
         pnl_24h_hours = account_info.get('pnl_24h_hours')
 
-        pnl_1h = account_info.get('pnl_1h', 0)
-        pnl_1h_percentage = account_info.get('pnl_1h_percentage', 0)
+        pnl_1h = account_info.get('pnl_1h')
+        pnl_1h_percentage = account_info.get('pnl_1h_percentage')
         pnl_1h_source = account_info.get('pnl_1h_source', 'missing')
         pnl_1h_hours = account_info.get('pnl_1h_hours')
         
@@ -130,12 +167,19 @@ def get_cookie_data():
 
         # Build descriptive lines
         lines = []
-        lines.append(format_change_line(pnl_1h, pnl_1h_percentage, 'last hour', pnl_1h_source, pnl_1h_hours))
-        lines.append(format_change_line(pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours))
+        one_hour_line = format_change_line(pnl_1h, pnl_1h_percentage, 'last hour', pnl_1h_source, pnl_1h_hours)
+        lines.append(one_hour_line)
+        day_line = format_change_line(pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours)
+        lines.append(day_line)
 
-        pnl_text = ' '.join(lines)
+        pnl_text = ' '.join(line['text'] for line in lines)
         
         cookie_grid = list(range(cookie_count))
+
+        # Determine primary color/class using first non-neutral line; fallback to first line
+        primary_line = next((line for line in lines if line['class'] != 'neutral'), lines[0])
+        pnl_color = primary_line['color']
+        pnl_class = primary_line['class']
         
         return {
             'cookie_count': cookie_count,
@@ -154,7 +198,7 @@ def get_cookie_data():
             'equity': 0,
             'pnl_percentage': 0,
             'pnl_text': 'No data available right now.',
-            'pnl_lines': ['No data available right now.'],
+            'pnl_lines': [{'text': 'No data available right now.', 'class': 'neutral', 'color': NEUTRAL_COLOR}],
             'pnl_color': 'gray',
             'pnl_class': 'neutral',
             'cookie_grid': []
