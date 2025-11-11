@@ -144,7 +144,8 @@ def get_cookie_data():
                 'pnl_text': '0.00 cookies gained in the last 24hs (0.00%)',
                 'pnl_color': 'gray',
                 'pnl_class': 'neutral',
-                'cookie_grid': []
+                'cookie_grid': [],
+                'chart_data': []
             }
         
         equity = account_info['equity']
@@ -158,19 +159,35 @@ def get_cookie_data():
         pnl_1h_source = account_info.get('pnl_1h_source', 'missing')
         pnl_1h_hours = account_info.get('pnl_1h_hours')
         
+        pnl_72h = account_info.get('pnl_72h')
+        pnl_72h_percentage = account_info.get('pnl_72h_percentage')
+        pnl_72h_source = account_info.get('pnl_72h_source', 'approx')
+        pnl_72h_hours = account_info.get('pnl_72h_hours')
+        
         cookie_count = int(equity / 1000)
         
-        # Determine display color/class using 24h if available, otherwise 1h
-        primary_pnl = pnl_24h if pnl_24h_source != 'missing' else pnl_1h
-        pnl_color = '#4CAF50' if primary_pnl > 0 else '#F44336' if primary_pnl < 0 else '#9E9E9E'
-        pnl_class = 'gain' if primary_pnl > 0 else 'loss' if primary_pnl < 0 else 'neutral'
+        # Determine primary window (prefer 72h, then 24h, then 1h)
+        if pnl_72h_source == 'true':
+            primary_pnl = pnl_72h
+        elif pnl_24h_source != 'missing':
+            primary_pnl = pnl_24h
+        else:
+            primary_pnl = pnl_1h
+
+        pnl_color = '#4CAF50' if primary_pnl and primary_pnl > 0 else '#F44336' if primary_pnl and primary_pnl < 0 else '#9E9E9E'
+        pnl_class = 'gain' if primary_pnl and primary_pnl > 0 else 'loss' if primary_pnl and primary_pnl < 0 else 'neutral'
 
         # Build descriptive lines
         lines = []
-        one_hour_line = format_change_line(pnl_1h, pnl_1h_percentage, 'last hour', pnl_1h_source, pnl_1h_hours)
+        one_hour_line = format_change_line(
+            pnl_1h, pnl_1h_percentage, 'last hour', pnl_1h_source, pnl_1h_hours)
         lines.append(one_hour_line)
-        day_line = format_change_line(pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours)
+        day_line = format_change_line(
+            pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours)
         lines.append(day_line)
+        three_day_line = format_change_line(
+            pnl_72h, pnl_72h_percentage, 'last 72 hours', pnl_72h_source, pnl_72h_hours)
+        lines.append(three_day_line)
 
         pnl_text = ' '.join(line['text'] for line in lines)
         
@@ -180,16 +197,21 @@ def get_cookie_data():
         primary_line = next((line for line in lines if line['class'] != 'neutral'), lines[0])
         pnl_color = primary_line['color']
         pnl_class = primary_line['class']
+        show_winning_gif = (one_hour_line['class'] == 'gain' and day_line['class'] == 'gain')
         
+        headline_pct = pnl_24h_percentage if pnl_24h_source != 'missing' else pnl_1h_percentage
+
         return {
             'cookie_count': cookie_count,
             'equity': equity,
-            'pnl_percentage': pnl_24h_percentage if pnl_24h_source != 'missing' else pnl_1h_percentage,
+            'pnl_percentage': headline_pct,
             'pnl_text': pnl_text,
             'pnl_lines': lines,
             'pnl_color': pnl_color,
             'pnl_class': pnl_class,
-            'cookie_grid': cookie_grid
+            'cookie_grid': cookie_grid,
+            'show_winning_gif': show_winning_gif,
+            'chart_data': [] # Placeholder for chart data
         }
     
     except:
@@ -201,7 +223,9 @@ def get_cookie_data():
             'pnl_lines': [{'text': 'No data available right now.', 'class': 'neutral', 'color': NEUTRAL_COLOR}],
             'pnl_color': 'gray',
             'pnl_class': 'neutral',
-            'cookie_grid': []
+            'cookie_grid': [],
+            'show_winning_gif': False,
+            'chart_data': []
         }
 
 @app.route('/')

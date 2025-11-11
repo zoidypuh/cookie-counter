@@ -33,7 +33,7 @@
             </div>
             
             <div class="gif-container">
-                {% if pnl_percentage > 0 %}
+                {% if show_winning_gif %}
                     <img src="{{ url_for('static', filename='trump-winning.gif') }}" alt="Winning" class="pnl-gif">
                 {% else %}
                     <img src="{{ url_for('static', filename='trump-losing.gif') }}" alt="Losing" class="pnl-gif">

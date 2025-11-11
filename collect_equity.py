@@ -67,12 +67,12 @@ def collect_equity_snapshot():
         return False
 
 def cleanup_old_snapshots(ds, current_time):
-    """Remove snapshots older than 25 hours"""
+    """Remove snapshots older than 73 hours (keep last ~3 days)"""
     if not ds:
         return
 
     try:
-        cutoff_time = current_time - timedelta(hours=25)
+        cutoff_time = current_time - timedelta(hours=75)
 
         query = ds.query(kind=KIND)
         query.add_filter('timestamp', '<', cutoff_time)

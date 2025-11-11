@@ -47,15 +47,14 @@ class BybitClient:
         except:
             return None
     
-    def get_24h_equity_data(self, ds=None) -> List[Dict]:
-        """Get equity snapshots from the last 24 hours"""
+    def get_snapshot_data(self, hours: int, ds=None) -> List[Dict]:
+        """Get equity snapshots from the last `hours` hours."""
         ds = ds or self.datastore_client
         if not ds:
             return []
 
         try:
-            # Get snapshots from last 24 hours
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
             data = []
             query = ds.query(kind=KIND_EQUITY)
@@ -71,7 +70,7 @@ class BybitClient:
             return data
 
         except Exception as e:
-            print(f"Error fetching 24h equity data: {e}")
+            print(f"Error fetching {hours}h equity data: {e}")
             return []
 
     def get_account_info(self, datastore_override: bool = False) -> Optional[Dict]:
@@ -97,12 +96,17 @@ class BybitClient:
             pnl_24h_source = 'approx'
             pnl_24h_hours = None
 
+            pnl_72h = None
+            pnl_72h_pct = None
+            pnl_72h_source = 'missing'
+            pnl_72h_hours = None
+
             # Try to get true rolling data from Datastore
             ds_client = self.datastore_client
             if datastore_override and not ds_client:
                 ds_client = self._init_datastore()
 
-            equity_data = self.get_24h_equity_data(ds_client) if ds_client else []
+            equity_data = self.get_snapshot_data(72, ds_client) if ds_client else []
 
             if equity_data:
                 equity_data.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -136,6 +140,20 @@ class BybitClient:
                     pnl_24h_hours = max(0.01, (now - snap_24h['timestamp']).total_seconds() / 3600)
                     pnl_24h_source = 'true'
 
+                # 72 hour change
+                pnl_72h = None
+                pnl_72h_pct = None
+                pnl_72h_source = 'missing'
+                pnl_72h_hours = None
+
+                snap_72h = find_snapshot(72.0)
+                if snap_72h:
+                    base_72h = snap_72h['equity']
+                    pnl_72h = current_equity - base_72h
+                    pnl_72h_pct = (pnl_72h / base_72h) * 100 if base_72h > 0 else 0
+                    pnl_72h_hours = max(0.01, (now - snap_72h['timestamp']).total_seconds() / 3600)
+                    pnl_72h_source = 'true'
+
             # Fallbacks when datastore is unavailable or incomplete
             if pnl_1h is None:
                 pnl_1h = 0.0
@@ -151,6 +169,14 @@ class BybitClient:
                 typical_equity = total_equity_usd - pnl_24h
                 pnl_24h_pct = (pnl_24h / typical_equity) * 100 if typical_equity > 0 else 0
                 pnl_24h_source = 'approx'
+                pnl_72h = pnl_24h
+                pnl_72h_pct = pnl_24h_pct
+                pnl_72h_source = 'approx'
+
+            if pnl_72h is None:
+                pnl_72h = pnl_24h
+                pnl_72h_pct = pnl_24h_pct
+                pnl_72h_source = 'approx'
 
             return {
                 'equity': total_equity_usd,
@@ -162,6 +188,11 @@ class BybitClient:
                 'pnl_24h_percentage': pnl_24h_pct,
                 'pnl_24h_source': pnl_24h_source,
                 'pnl_24h_hours': pnl_24h_hours,
+                'pnl_72h': pnl_72h,
+                'pnl_72h_percentage': pnl_72h_pct,
+                'pnl_72h_source': pnl_72h_source,
+                'pnl_72h_hours': pnl_72h_hours,
+                'equity_snapshots': equity_data,
                 'currency': 'USD'
             }
 
