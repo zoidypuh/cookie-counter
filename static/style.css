@@ -171,7 +171,7 @@ main {
 }
 
 .pnl-gif {
-    max-width: 300px;
+    max-width: 450px;
     height: auto;
     display: inline-block;
 }
@@ -323,7 +323,7 @@ main {
     }
     
     .pnl-gif {
-        max-width: 250px;
+        max-width: 375px;
     }
     
     .pnl-display.loss {
@@ -354,7 +354,7 @@ main {
     }
     
     .pnl-gif {
-        max-width: 200px;
+        max-width: 300px;
     }
     
     .jar-label {
