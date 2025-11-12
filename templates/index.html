@@ -13,6 +13,64 @@
         setInterval(function() {
             location.reload();
         }, 30000);
+
+        // Check for P&L status change
+        window.addEventListener('load', function() {
+            // Get current hour P&L status (first pnl-line)
+            const hourPnlElement = document.querySelector('.pnl-line');
+            const currentHourStatus = hourPnlElement ? 
+                (hourPnlElement.classList.contains('gain') ? 'gain' : 
+                 hourPnlElement.classList.contains('loss') ? 'loss' : 'neutral') : 'neutral';
+            
+            // Check for hour P&L change
+            const previousStatus = localStorage.getItem('hourPnlStatus');
+            
+            if (previousStatus !== null && previousStatus !== currentHourStatus) {
+                if (previousStatus !== 'gain' && currentHourStatus === 'gain') {
+                    // Flipped to green - play cash sound
+                    const cashSound = document.getElementById('cashSound');
+                    if (cashSound) {
+                        cashSound.volume = 0.5;
+                        cashSound.currentTime = 0;
+                        cashSound.play().catch(e => console.log('Could not play cash sound:', e));
+                    }
+                    
+                    // Add visual feedback to P&L line
+                    if (hourPnlElement) {
+                        hourPnlElement.classList.add('pnl-flip-gain');
+                        setTimeout(() => hourPnlElement.classList.remove('pnl-flip-gain'), 2000);
+                    }
+                } else if (previousStatus !== 'loss' && currentHourStatus === 'loss') {
+                    // Flipped to red - play down sound
+                    const downSound = document.getElementById('downSound');
+                    if (downSound) {
+                        downSound.volume = 0.5;
+                        downSound.currentTime = 0;
+                        downSound.play().catch(e => console.log('Could not play down sound:', e));
+                    }
+                    
+                    // Add visual feedback to P&L line
+                    if (hourPnlElement) {
+                        hourPnlElement.classList.add('pnl-flip-loss');
+                        setTimeout(() => hourPnlElement.classList.remove('pnl-flip-loss'), 2000);
+                    }
+                }
+            }
+            
+            // Store current status for next comparison
+            localStorage.setItem('hourPnlStatus', currentHourStatus);
+            
+            // Handle cookie animation
+            if (sessionStorage.getItem('animationPlayed')) {
+                const cookies = document.querySelectorAll('.cookie-emoji');
+                cookies.forEach(cookie => {
+                    cookie.style.animation = 'none';
+                    cookie.style.opacity = '1';
+                });
+            } else {
+                sessionStorage.setItem('animationPlayed', 'true');
+            }
+        });
     </script>
 </head>
 <body>
@@ -23,6 +81,11 @@
                     <span class="count">{{ cookie_count }}</span>
                     <span class="unit">cookies</span>
                 </div>
+                {% if leverage_display %}
+                <div class="leverage-display {{ leverage_class }}">
+                    {{ leverage_display }}
+                </div>
+                {% endif %}
             </div>
             <div class="pnl-container">
                 <div class="pnl-display {{ pnl_class }}">
@@ -48,7 +111,7 @@
                 <div class="cookie-grid">
                     {% for cookie in cookie_grid %}
                     <div class="cookie-item">
-                        <span class="cookie-emoji">🍪</span>
+                        <span class="cookie-emoji cookie-{{ loop.index0 }}">🍪</span>
                     </div>
                     {% endfor %}
                 </div>
@@ -61,6 +124,15 @@
             {% endif %}
         </main>
     </div>
+    
+    <!-- Hidden audio elements for preloading -->
+    <audio id="cashSound" preload="auto">
+        <source src="{{ url_for('static', filename='cash.mp3') }}" type="audio/mpeg">
+    </audio>
+    <audio id="downSound" preload="auto">
+        <source src="{{ url_for('static', filename='down.mp3') }}" type="audio/mpeg">
+    </audio>
+    
 </body>
 </html>
 

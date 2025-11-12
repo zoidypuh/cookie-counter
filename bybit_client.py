@@ -85,6 +85,9 @@ class BybitClient:
 
             now = datetime.now(timezone.utc)
 
+            gross_position_value = 0.0
+            effective_leverage = None
+
             # Prepare default values
             pnl_1h = None
             pnl_1h_pct = None
@@ -154,6 +157,27 @@ class BybitClient:
                     pnl_72h_hours = max(0.01, (now - snap_72h['timestamp']).total_seconds() / 3600)
                     pnl_72h_source = 'true'
 
+            # Calculate effective leverage from open positions
+            try:
+                linear_response = self.client.get_positions(
+                    category="linear",
+                    settleCoin="USDT"
+                )
+                if linear_response and linear_response.get('retCode') == 0:
+                    positions = linear_response.get('result', {}).get('list', [])
+                    for pos in positions:
+                        pos_value = pos.get('positionValue')
+                        if pos_value and pos_value != '0':
+                            gross_position_value += abs(float(pos_value))
+                
+                if total_equity_usd > 0:
+                    effective_leverage = gross_position_value / total_equity_usd
+                else:
+                    effective_leverage = 0.0
+            except Exception as e:
+                print(f"Error calculating leverage: {e}")
+                effective_leverage = None
+
             # Fallbacks when datastore is unavailable or incomplete
             if pnl_1h is None:
                 pnl_1h = 0.0
@@ -193,7 +217,8 @@ class BybitClient:
                 'pnl_72h_source': pnl_72h_source,
                 'pnl_72h_hours': pnl_72h_hours,
                 'equity_snapshots': equity_data,
-                'currency': 'USD'
+                'currency': 'USD',
+                'effective_leverage': effective_leverage
             }
 
         except Exception as e:

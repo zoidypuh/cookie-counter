@@ -118,7 +118,8 @@ def format_change_line(pnl_value, pnl_pct, window_label, source='true', hours=No
         else:
             line['text'] = f"{cookies_text} since the previous snapshot {pct_text} (closest snapshot available).".strip()
     if source == 'approx':
-        line['text'] = f"24h change unavailable yet. Using today's performance: {cookies_text} {pct_text}".strip()
+        line['text'] = f"{window_label.capitalize()} change unavailable yet."
+        line['class'], line['color'] = 'neutral', NEUTRAL_COLOR
         return line
 
     if not line['text']:
@@ -163,6 +164,16 @@ def get_cookie_data():
         pnl_72h_percentage = account_info.get('pnl_72h_percentage')
         pnl_72h_source = account_info.get('pnl_72h_source', 'approx')
         pnl_72h_hours = account_info.get('pnl_72h_hours')
+
+        effective_leverage = account_info.get('effective_leverage')
+        leverage_display = None
+        leverage_class = 'leverage-neutral'
+        if effective_leverage is not None:
+            leverage_display = f"{effective_leverage:.2f}x"
+            if effective_leverage > 3:
+                leverage_class = 'leverage-high'
+            else:
+                leverage_class = 'leverage-low'
         
         cookie_count = int(equity / 1000)
         
@@ -185,9 +196,6 @@ def get_cookie_data():
         day_line = format_change_line(
             pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours)
         lines.append(day_line)
-        three_day_line = format_change_line(
-            pnl_72h, pnl_72h_percentage, 'last 72 hours', pnl_72h_source, pnl_72h_hours)
-        lines.append(three_day_line)
 
         pnl_text = ' '.join(line['text'] for line in lines)
         
@@ -211,7 +219,10 @@ def get_cookie_data():
             'pnl_class': pnl_class,
             'cookie_grid': cookie_grid,
             'show_winning_gif': show_winning_gif,
-            'chart_data': [] # Placeholder for chart data
+            'chart_data': [], # Placeholder for chart data
+            'effective_leverage': effective_leverage,
+            'leverage_display': leverage_display,
+            'leverage_class': leverage_class
         }
     
     except:
@@ -225,7 +236,10 @@ def get_cookie_data():
             'pnl_class': 'neutral',
             'cookie_grid': [],
             'show_winning_gif': False,
-            'chart_data': []
+            'chart_data': [],
+            'effective_leverage': None,
+            'leverage_display': None,
+            'leverage_class': 'leverage-neutral'
         }
 
 @app.route('/')
