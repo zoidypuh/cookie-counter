@@ -87,6 +87,9 @@
                 </div>
                 {% endif %}
             </div>
+            <div class="chart-container">
+                <canvas id="cookieChart"></canvas>
+            </div>
             <div class="pnl-container">
                 <div class="pnl-display {{ pnl_class }}">
                     {% for line in pnl_lines %}
@@ -132,6 +135,96 @@
     <audio id="downSound" preload="auto">
         <source src="{{ url_for('static', filename='down.mp3') }}" type="audio/mpeg">
     </audio>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Initialize cookie history chart
+        window.addEventListener('load', function() {
+            const ctx = document.getElementById('cookieChart').getContext('2d');
+            const currentCookies = {{ "%.2f"|format(cookie_count) }};
+            
+            // Get or initialize cookie history
+            let cookieHistory = JSON.parse(localStorage.getItem('cookieHistory') || '[]');
+            const now = new Date();
+            
+            // Add current data point
+            cookieHistory.push({
+                time: now.toISOString(),
+                value: currentCookies
+            });
+            
+            // Keep only last 20 data points (10 minutes at 30s intervals)
+            if (cookieHistory.length > 20) {
+                cookieHistory = cookieHistory.slice(-20);
+            }
+            
+            // Save updated history
+            localStorage.setItem('cookieHistory', JSON.stringify(cookieHistory));
+            
+            // Prepare data for chart
+            const labels = cookieHistory.map(() => '');
+            const data = cookieHistory.map(point => point.value);
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+            const lastValue = data[data.length - 1];
+            const firstValue = data[0];
+            const isGaining = lastValue >= firstValue;
+            
+            if (isGaining) {
+                gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
+                gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+            } else {
+                gradient.addColorStop(0, 'rgba(244, 67, 54, 0.3)');
+                gradient.addColorStop(1, 'rgba(244, 67, 54, 0)');
+            }
+            
+            // Create chart
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: isGaining ? '#4CAF50' : '#F44336',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false,
+                            beginAtZero: false
+                        }
+                    },
+                    interaction: {
+                        mode: 'none'
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+        });
+    </script>
     
 </body>
 </html>
