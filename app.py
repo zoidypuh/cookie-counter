@@ -175,7 +175,7 @@ def get_cookie_data():
             else:
                 leverage_class = 'leverage-low'
         
-        cookie_count = int(equity / 1000)
+        cookie_count = equity / 1000  # Keep as float for decimal display
         
         # Determine primary window (prefer 72h, then 24h, then 1h)
         if pnl_72h_source == 'true':
@@ -199,7 +199,7 @@ def get_cookie_data():
 
         pnl_text = ' '.join(line['text'] for line in lines)
         
-        cookie_grid = list(range(cookie_count))
+        cookie_grid = list(range(int(cookie_count)))  # Grid shows whole cookies only
 
         # Determine primary color/class using first non-neutral line; fallback to first line
         primary_line = next((line for line in lines if line['class'] != 'neutral'), lines[0])

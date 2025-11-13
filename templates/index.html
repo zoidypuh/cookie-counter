@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ cookie_count }} still in jar</title>
+    <title>{{ "%.2f"|format(cookie_count) }} still in jar</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text x='50%25' y='50%25' font-size='48' text-anchor='middle' dominant-baseline='central'>🍪</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -78,7 +78,7 @@
         <main>
             <div class="stats-container">
                 <div class="cookie-count">
-                    <span class="count">{{ cookie_count }}</span>
+                    <span class="count">{{ "%.2f"|format(cookie_count) }}</span>
                     <span class="unit">cookies</span>
                 </div>
                 {% if leverage_display %}
