@@ -45,3 +45,13 @@ With 0.5s updates and 0.5s cache:
 - **Worst case**: 2 API calls per second (if perfectly out of sync)
 - **Typical case**: 1-2 API calls per second
 - **Multiple users**: All users share same cache, no additional API calls
+
+## Chart Updates
+
+### 7. Real-time Chart Updates
+- Chart updates every 0.5 seconds with live data
+- Shows 10 minutes of history (1200 data points max)
+- Server-side data storage - no more localStorage
+- Chart color changes based on trend (green for gain, red for loss)
+- Hoverable tooltips showing exact time and value
+- Smooth transitions without animation delays

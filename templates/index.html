@@ -86,6 +86,11 @@
             if (data.cookie_count !== undefined) {
                 document.title = data.cookie_count.toFixed(2) + ' still in jar';
             }
+            
+            // Update chart
+            if (data.chart_data) {
+                updateChart(data.chart_data);
+            }
         }
 
         // Check for P&L status change
@@ -189,62 +194,36 @@
     </audio>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script>
+        let cookieChart = null;
+        
         // Initialize cookie history chart
         window.addEventListener('load', function() {
             const ctx = document.getElementById('cookieChart').getContext('2d');
-            const currentCookies = {{ "%.2f"|format(cookie_count) }};
             
-            // Get or initialize cookie history
-            let cookieHistory = JSON.parse(localStorage.getItem('cookieHistory') || '[]');
-            const now = new Date();
-            
-            // Add current data point
-            cookieHistory.push({
-                time: now.toISOString(),
-                value: currentCookies
-            });
-            
-            // Keep only last 20 data points (10 minutes at 30s intervals)
-            if (cookieHistory.length > 20) {
-                cookieHistory = cookieHistory.slice(-20);
-            }
-            
-            // Save updated history
-            localStorage.setItem('cookieHistory', JSON.stringify(cookieHistory));
-            
-            // Prepare data for chart
-            const labels = cookieHistory.map(() => '');
-            const data = cookieHistory.map(point => point.value);
+            // Initial chart data from server
+            const initialData = {{ chart_data | tojson | safe }};
             
             // Create gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, 150);
-            const lastValue = data[data.length - 1];
-            const firstValue = data[0];
-            const isGaining = lastValue >= firstValue;
-            
-            if (isGaining) {
-                gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
-                gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
-            } else {
-                gradient.addColorStop(0, 'rgba(244, 67, 54, 0.3)');
-                gradient.addColorStop(1, 'rgba(244, 67, 54, 0)');
-            }
+            gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
+            gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
             
             // Create chart
-            new Chart(ctx, {
+            cookieChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
                     datasets: [{
-                        data: data,
-                        borderColor: isGaining ? '#4CAF50' : '#F44336',
+                        data: initialData,
+                        borderColor: '#4CAF50',
                         backgroundColor: gradient,
-                        borderWidth: 3,
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.4,
                         pointRadius: 0,
-                        pointHoverRadius: 0
+                        pointHoverRadius: 3,
+                        pointBackgroundColor: '#4CAF50'
                     }]
                 },
                 options: {
@@ -255,11 +234,34 @@
                             display: false
                         },
                         tooltip: {
-                            enabled: false
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 5,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    if (context[0]) {
+                                        const date = new Date(context[0].parsed.x);
+                                        return date.toLocaleTimeString();
+                                    }
+                                    return '';
+                                },
+                                label: function(context) {
+                                    return context.parsed.y.toFixed(2) + ' cookies';
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
+                            type: 'time',
                             display: false
                         },
                         y: {
@@ -268,7 +270,9 @@
                         }
                     },
                     interaction: {
-                        mode: 'none'
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
                     },
                     animation: {
                         duration: 0
@@ -276,6 +280,42 @@
                 }
             });
         });
+        
+        // Update chart function
+        function updateChart(chartData) {
+            if (!cookieChart || !chartData || chartData.length === 0) return;
+            
+            // Update chart data
+            cookieChart.data.datasets[0].data = chartData;
+            
+            // Update color based on trend
+            const ctx = cookieChart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+            
+            if (chartData.length > 1) {
+                const firstValue = chartData[0].y;
+                const lastValue = chartData[chartData.length - 1].y;
+                const isGaining = lastValue >= firstValue;
+                
+                if (isGaining) {
+                    gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
+                    gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+                    cookieChart.data.datasets[0].borderColor = '#4CAF50';
+                    cookieChart.data.datasets[0].pointBackgroundColor = '#4CAF50';
+                } else {
+                    gradient.addColorStop(0, 'rgba(244, 67, 54, 0.3)');
+                    gradient.addColorStop(1, 'rgba(244, 67, 54, 0)');
+                    cookieChart.data.datasets[0].borderColor = '#F44336';
+                    cookieChart.data.datasets[0].pointBackgroundColor = '#F44336';
+                }
+            } else {
+                gradient.addColorStop(0, 'rgba(76, 175, 80, 0.3)');
+                gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+            }
+            
+            cookieChart.data.datasets[0].backgroundColor = gradient;
+            cookieChart.update('none'); // Update without animation
+        }
     </script>
     
 </body>

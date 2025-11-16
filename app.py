@@ -15,6 +15,11 @@ cache = {
 cache_lock = Lock()
 CACHE_DURATION = 0.5  # seconds
 
+# Global chart data storage
+chart_history = []
+chart_lock = Lock()
+MAX_CHART_POINTS = 1200  # 10 minutes at 0.5s intervals (600s * 2)
+
 # Global Bybit client instance
 bybit_client = None
 client_lock = Lock()
@@ -30,6 +35,32 @@ def get_bybit_client():
                 print(f"Error creating Bybit client: {e}")
                 return None
     return bybit_client
+
+def update_chart_history(cookie_count):
+    """Update chart history with new data point"""
+    global chart_history
+    with chart_lock:
+        timestamp = time.time()
+        chart_history.append({
+            'timestamp': timestamp,
+            'value': cookie_count
+        })
+        
+        # Keep only last MAX_CHART_POINTS
+        if len(chart_history) > MAX_CHART_POINTS:
+            chart_history = chart_history[-MAX_CHART_POINTS:]
+
+def get_chart_data():
+    """Get chart data for frontend"""
+    with chart_lock:
+        if not chart_history:
+            return []
+        
+        # Return data in format suitable for Chart.js
+        return [{
+            'x': point['timestamp'] * 1000,  # Convert to milliseconds for JavaScript
+            'y': point['value']
+        } for point in chart_history]
 
 @app.route('/collect-equity')
 def collect_equity():
@@ -164,17 +195,13 @@ def get_cookie_data(use_cache=True):
             if cache['data'] is not None and cache['timestamp'] is not None:
                 age = time.time() - cache['timestamp']
                 if age < CACHE_DURATION:
-                    print(f"[CACHE HIT] Returning cached data (age: {age:.3f}s)")
                     return cache['data']
     
     try:
         # Try to get real data
-        print(f"[API CALL] Fetching fresh data from Bybit API...")
-        start_time = time.time()
         client = get_bybit_client()
         if client:
             account_info = client.get_account_info()
-            print(f"[API CALL] Completed in {time.time() - start_time:.3f}s")
         else:
             account_info = None
         
@@ -227,6 +254,9 @@ def get_cookie_data(use_cache=True):
         
         cookie_count = equity / 1000  # Keep as float for decimal display
         
+        # Update chart history
+        update_chart_history(cookie_count)
+        
         # Determine primary window (prefer 72h, then 24h, then 1h)
         if pnl_72h_source == 'true':
             primary_pnl = pnl_72h
@@ -267,7 +297,7 @@ def get_cookie_data(use_cache=True):
             'pnl_color': pnl_color,
             'pnl_class': pnl_class,
             'cookie_grid': cookie_grid,
-            'chart_data': [], # Placeholder for chart data
+            'chart_data': get_chart_data(),
             'effective_leverage': effective_leverage,
             'leverage_display': leverage_display,
             'leverage_class': leverage_class,
@@ -292,7 +322,7 @@ def get_cookie_data(use_cache=True):
             'pnl_color': 'gray',
             'pnl_class': 'neutral',
             'cookie_grid': [],
-            'chart_data': [],
+            'chart_data': get_chart_data(),
             'effective_leverage': None,
             'leverage_display': None,
             'leverage_class': 'leverage-neutral',
