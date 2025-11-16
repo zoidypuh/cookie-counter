@@ -87,45 +87,22 @@ def collect_equity():
 def siri_summary():
     """
     Lightweight endpoint for Siri Shortcuts to fetch cookie status.
-    Returns plain text by default; add ?format=json for a JSON response.
+    Returns just the cookie number.
     """
     data = get_cookie_data()
 
     if not data:
-        message = "I couldn't reach the cookie tracker right now."
-        line_dicts = []
+        cookie_count = 0
     else:
-        count = data.get('cookie_count', 0)
-        line_dicts = data.get('pnl_lines') or []
-        line_texts = [line.get('text') for line in line_dicts if line and line.get('text')]
-        summary = ' '.join(line_texts)
-
-        if count == 0:
-            message = "You have no cookies in the jar right now."
-        else:
-            message = f"You have {count} cookies still in the jar."
-            if summary:
-                message += f" {summary}"
-
-    line_json = [
-        {
-            'text': line.get('text'),
-            'class': line.get('class'),
-            'color': line.get('color')
-        }
-        for line in line_dicts
-    ] if line_dicts else []
+        cookie_count = data.get('cookie_count', 0)
 
     if 'json' in (request.args.get('format') or '').lower():
         return jsonify({
-            'message': message,
-            'cookie_count': data.get('cookie_count') if data else None,
-            'pnl_text': data.get('pnl_text') if data else None,
-            'pnl_lines': line_json,
-            'pnl_percentage': data.get('pnl_percentage') if data else None,
+            'cookie_count': cookie_count
         })
 
-    return message, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    # Return just the number formatted to 2 decimal places
+    return f"{cookie_count:.2f}", 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 GAIN_COLOR = '#4CAF50'
 LOSS_COLOR = '#F44336'
