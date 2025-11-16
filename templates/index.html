@@ -9,10 +9,70 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
-        // Auto-refresh the page every 30 seconds
+        // Update data every 0.5 seconds without page reload
         setInterval(function() {
-            location.reload();
-        }, 30000);
+            fetch('/api/data')
+                .then(response => response.json())
+                .then(data => updateUI(data))
+                .catch(error => console.error('Error fetching data:', error));
+        }, 500);
+        
+        function updateUI(data) {
+            // Update cookie count
+            const countElement = document.querySelector('.cookie-count .count');
+            if (countElement) {
+                countElement.textContent = data.cookie_count.toFixed(2);
+            }
+            
+            // Update maintenance margin
+            const mmPercentageElement = document.querySelector('.mm-percentage');
+            if (mmPercentageElement) {
+                mmPercentageElement.textContent = data.maintenance_margin_percentage.toFixed(1) + '%';
+            }
+            
+            // Update leverage
+            const leverageElement = document.querySelector('.mm-leverage');
+            if (leverageElement && data.effective_leverage) {
+                leverageElement.textContent = data.effective_leverage.toFixed(2) + 'x';
+            }
+            
+            // Update maintenance margin bar
+            const mmBarFill = document.querySelector('.mm-bar-fill');
+            if (mmBarFill) {
+                const percentage = Math.min(data.maintenance_margin_percentage, 100);
+                mmBarFill.style.width = percentage + '%';
+                
+                // Update color based on percentage
+                let bgColor;
+                if (data.maintenance_margin_percentage < 20) {
+                    bgColor = '#4CAF50';
+                } else if (data.maintenance_margin_percentage < 50) {
+                    bgColor = '#FF9800';
+                } else {
+                    bgColor = '#F44336';
+                }
+                mmBarFill.style.background = bgColor;
+            }
+            
+            // Update PnL lines
+            const pnlContainer = document.querySelector('.pnl-display');
+            if (pnlContainer && data.pnl_lines) {
+                pnlContainer.innerHTML = '';
+                pnlContainer.className = 'pnl-display ' + data.pnl_class;
+                
+                data.pnl_lines.forEach(line => {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'pnl-line ' + line.class;
+                    lineDiv.textContent = line.text;
+                    pnlContainer.appendChild(lineDiv);
+                });
+            }
+            
+            // Update page title
+            if (data.cookie_count !== undefined) {
+                document.title = data.cookie_count.toFixed(2) + ' still in jar';
+            }
+        }
 
         // Check for P&L status change
         window.addEventListener('load', function() {

@@ -1,8 +1,35 @@
 import os
 from flask import Flask, render_template, jsonify, request
 from bybit_client import BybitClient
+import time
+from threading import Lock
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
+# Global cache for API data
+cache = {
+    'data': None,
+    'timestamp': None
+}
+cache_lock = Lock()
+CACHE_DURATION = 0.5  # seconds
+
+# Global Bybit client instance
+bybit_client = None
+client_lock = Lock()
+
+def get_bybit_client():
+    """Get or create a cached Bybit client instance"""
+    global bybit_client
+    with client_lock:
+        if bybit_client is None:
+            try:
+                bybit_client = BybitClient()
+            except Exception as e:
+                print(f"Error creating Bybit client: {e}")
+                return None
+    return bybit_client
 
 @app.route('/collect-equity')
 def collect_equity():
@@ -127,14 +154,28 @@ def format_change_line(pnl_value, pnl_pct, window_label, source='true', hours=No
     return line
 
 
-def get_cookie_data():
+def get_cookie_data(use_cache=True):
+    """Get cookie data with optional caching to prevent duplicate API calls"""
+    global cache
+    
+    # Check cache first
+    if use_cache:
+        with cache_lock:
+            if cache['data'] is not None and cache['timestamp'] is not None:
+                age = time.time() - cache['timestamp']
+                if age < CACHE_DURATION:
+                    print(f"[CACHE HIT] Returning cached data (age: {age:.3f}s)")
+                    return cache['data']
+    
     try:
         # Try to get real data
-        try:
-            client = BybitClient()
+        print(f"[API CALL] Fetching fresh data from Bybit API...")
+        start_time = time.time()
+        client = get_bybit_client()
+        if client:
             account_info = client.get_account_info()
-        except:
-            # If API fails, use demo data
+            print(f"[API CALL] Completed in {time.time() - start_time:.3f}s")
+        else:
             account_info = None
         
         if not account_info:
@@ -217,7 +258,7 @@ def get_cookie_data():
         
         headline_pct = pnl_24h_percentage if pnl_24h_source != 'missing' else pnl_1h_percentage
 
-        return {
+        result = {
             'cookie_count': cookie_count,
             'equity': equity,
             'pnl_percentage': headline_pct,
@@ -232,9 +273,17 @@ def get_cookie_data():
             'leverage_class': leverage_class,
             'maintenance_margin_percentage': mm_used_percentage
         }
+        
+        # Cache the result
+        with cache_lock:
+            cache['data'] = result
+            cache['timestamp'] = time.time()
+        
+        return result
     
-    except:
-        return {
+    except Exception as e:
+        print(f"Error in get_cookie_data: {e}")
+        error_result = {
             'cookie_count': 0,
             'equity': 0,
             'pnl_percentage': 0,
@@ -249,10 +298,28 @@ def get_cookie_data():
             'leverage_class': 'leverage-neutral',
             'maintenance_margin_percentage': 0
         }
+        
+        # Cache even error results to prevent rapid retries
+        with cache_lock:
+            cache['data'] = error_result
+            cache['timestamp'] = time.time()
+        
+        return error_result
+
+@app.route('/api/data')
+def api_data():
+    """API endpoint for fetching updated data without page reload"""
+    data = get_cookie_data()
+    return jsonify(data)
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok', 'cache_duration': CACHE_DURATION})
 
 @app.route('/')
 def index():
-    cookie_data = get_cookie_data()
+    cookie_data = get_cookie_data(use_cache=False)  # Don't use cache on initial page load
     return render_template('index.html', **cookie_data)
 
 if __name__ == '__main__':
