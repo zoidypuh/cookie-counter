@@ -63,10 +63,18 @@ main {
     color: #2c3e50;
 }
 
-.mm-risk {
+.mm-title {
+    text-align: center;
     font-size: 1.1rem;
-    color: #7f8c8d;
+    color: #4CAF50;
     font-weight: 400;
+    margin-bottom: 5px;
+}
+
+.mm-leverage {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
 }
 
 .mm-bar-background {
@@ -103,11 +111,22 @@ main {
     background: rgba(0, 0, 0, 0.2);
 }
 
+.chart-section {
+    width: 100%;
+    margin: 30px 0 40px 0;
+}
+
+.chart-title {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #4CAF50;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
 .chart-container {
-    width: 80%;
-    max-width: 900px;
+    width: 100%;
     height: 150px;
-    margin: 30px auto 40px auto;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
     border-radius: 12px;
     padding: 10px;
@@ -245,7 +264,15 @@ main {
         font-size: 1rem;
     }
     
-    .mm-risk {
+    .mm-leverage {
+        font-size: 1rem;
+    }
+    
+    .mm-title {
+        font-size: 1rem;
+    }
+    
+    .chart-title {
         font-size: 1rem;
     }
     
@@ -282,9 +309,12 @@ main {
     }
     
     .chart-container {
-        width: 85%;
+        width: 100%;
         height: 120px;
-        margin: 20px auto 30px auto;
+    }
+    
+    .chart-section {
+        margin: 20px 0 30px 0;
     }
 }
 
@@ -305,8 +335,16 @@ main {
         color: #ecf0f1;
     }
     
-    .mm-risk {
-        color: #95a5a6;
+    .mm-leverage {
+        color: #ecf0f1;
+    }
+    
+    .mm-title {
+        color: #4CAF50;
+    }
+    
+    .chart-title {
+        color: #4CAF50;
     }
     
     .mm-bar-background {

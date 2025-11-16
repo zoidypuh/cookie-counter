@@ -73,10 +73,11 @@
             
             <!-- Maintenance Margin Indicator -->
             <div class="maintenance-margin-container">
+                <div class="mm-title">risk</div>
                 <div class="mm-header">
                     <span class="mm-percentage">{{ "%.1f"|format(maintenance_margin_percentage) }}%</span>
                     {% if effective_leverage %}
-                    <span class="mm-risk">{{ "%.2f"|format(effective_leverage) }} risk</span>
+                    <span class="mm-leverage">{{ "%.2f"|format(effective_leverage) }}x</span>
                     {% endif %}
                 </div>
                 <div class="mm-bar-background">
@@ -91,8 +92,11 @@
                 </div>
             </div>
             
-            <div class="chart-container">
-                <canvas id="cookieChart"></canvas>
+            <div class="chart-section">
+                <div class="chart-title">history</div>
+                <div class="chart-container">
+                    <canvas id="cookieChart"></canvas>
+                </div>
             </div>
             <div class="pnl-container">
                 <div class="pnl-display {{ pnl_class }}">
