@@ -9,9 +9,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
-        // Update data every 0.5 seconds without page reload
+        // Update data every 1 second without page reload
         let errorCount = 0;
-        setInterval(function() {
+        let updateInterval = null;
+        
+        // Clear any existing interval
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+        
+        updateInterval = setInterval(function() {
             fetch('/api/data')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -24,12 +31,19 @@
                 .catch(error => {
                     errorCount++;
                     console.error('Error fetching data:', error);
-                    // Only show alert after 10 consecutive errors (5 seconds)
+                    // Only show alert after 10 consecutive errors (10 seconds)
                     if (errorCount === 10) {
                         console.warn('Connection issues detected. Data updates paused.');
                     }
                 });
-        }, 500);
+        }, 1000);
+        
+        // Clean up interval when page is unloaded
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
         
         function updateUI(data) {
             // Update cookie count
@@ -84,7 +98,7 @@
             
             // Update page title
             if (data.cookie_count !== undefined) {
-                document.title = data.cookie_count.toFixed(2) + ' still in jar';
+                document.title = data.cookie_count.toFixed(2);
             }
             
             // Update chart

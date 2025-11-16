@@ -13,12 +13,12 @@ cache = {
     'timestamp': None
 }
 cache_lock = Lock()
-CACHE_DURATION = 0.5  # seconds
+CACHE_DURATION = 1  # seconds
 
 # Global chart data storage
 chart_history = []
 chart_lock = Lock()
-MAX_CHART_POINTS = 1200  # 10 minutes at 0.5s intervals (600s * 2)
+MAX_CHART_POINTS = 600  # 10 minutes at 1s intervals (600s / 1s)
 
 # Global Bybit client instance
 bybit_client = None
