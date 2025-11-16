@@ -10,11 +10,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
         // Update data every 0.5 seconds without page reload
+        let errorCount = 0;
         setInterval(function() {
             fetch('/api/data')
-                .then(response => response.json())
-                .then(data => updateUI(data))
-                .catch(error => console.error('Error fetching data:', error));
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    updateUI(data);
+                    errorCount = 0;  // Reset error count on success
+                })
+                .catch(error => {
+                    errorCount++;
+                    console.error('Error fetching data:', error);
+                    // Only show alert after 10 consecutive errors (5 seconds)
+                    if (errorCount === 10) {
+                        console.warn('Connection issues detected. Data updates paused.');
+                    }
+                });
         }, 500);
         
         function updateUI(data) {
