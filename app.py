@@ -54,7 +54,11 @@ def get_chart_data():
     """Get chart data for frontend"""
     with chart_lock:
         if not chart_history:
-            return []
+            # Return a single point with current timestamp to prevent empty chart
+            return [{
+                'x': int(time.time() * 1000),
+                'y': 0
+            }]
         
         # Return data in format suitable for Chart.js
         return [{
@@ -214,7 +218,12 @@ def get_cookie_data(use_cache=True):
                 'pnl_color': 'gray',
                 'pnl_class': 'neutral',
                 'cookie_grid': [],
-                'chart_data': []
+                'chart_data': get_chart_data(),
+                'pnl_lines': [{'text': '0.00 cookies gained in the last 24hs (0.00%)', 'class': 'neutral', 'color': NEUTRAL_COLOR}],
+                'effective_leverage': 0,
+                'leverage_display': '0.00x',
+                'leverage_class': 'leverage-neutral',
+                'maintenance_margin_percentage': 0
             }
         
         equity = account_info['equity']
