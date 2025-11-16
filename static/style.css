@@ -30,26 +30,7 @@ main {
 
 .stats-container {
     text-align: center;
-    margin-bottom: 50px;
-}
-
-.leverage-display {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 10px;
-    transition: color 0.3s ease;
-}
-
-.leverage-display.leverage-high {
-    color: #F44336;
-}
-
-.leverage-display.leverage-low {
-    color: #4CAF50;
-}
-
-.leverage-display.leverage-neutral {
-    color: #9E9E9E;
+    margin-bottom: 15px;
 }
 
 /* Maintenance Margin Indicator */
@@ -65,7 +46,8 @@ main {
 .mm-header {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: baseline;
+    gap: 8px;
     margin-bottom: 10px;
 }
 
@@ -79,6 +61,12 @@ main {
     font-size: 1.1rem;
     font-weight: 700;
     color: #2c3e50;
+}
+
+.mm-risk {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    font-weight: 400;
 }
 
 .mm-bar-background {
@@ -132,9 +120,9 @@ main {
 }
 
 .cookie-count {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .cookie-count .count {
@@ -179,12 +167,7 @@ main {
     }
 }
 
-.cookie-count .unit {
-    font-size: 1.5rem;
-    color: #7f8c8d;
-    font-weight: 400;
-    margin-left: 5px;
-}
+
 
 .pnl-container {
     text-align: center;
@@ -262,12 +245,12 @@ main {
         font-size: 1rem;
     }
     
-    .cookie-count .count {
-        font-size: 3rem;
+    .mm-risk {
+        font-size: 1rem;
     }
     
-    .cookie-count .unit {
-        font-size: 1.25rem;
+    .cookie-count .count {
+        font-size: 3rem;
     }
     
 
@@ -286,10 +269,6 @@ main {
         font-size: 2.5rem;
     }
     
-    .cookie-count .unit {
-        font-size: 1rem;
-    }
-    
     .pnl-display {
         font-size: 1rem;
     }
@@ -300,10 +279,6 @@ main {
     
     .pnl-display.gain {
         font-size: 1.05rem;
-    }
-
-    .leverage-display {
-        font-size: 1.1rem;
     }
     
     .chart-container {
@@ -330,6 +305,10 @@ main {
         color: #ecf0f1;
     }
     
+    .mm-risk {
+        color: #95a5a6;
+    }
+    
     .mm-bar-background {
         background: #333;
     }
@@ -342,9 +321,4 @@ main {
     .cookie-count .count {
         color: #ecf0f1;
     }
-    
-    .cookie-count .unit {
-        color: #95a5a6;
-    }
-    
 }

@@ -68,19 +68,16 @@
             <div class="stats-container">
                 <div class="cookie-count">
                     <span class="count">{{ "%.2f"|format(cookie_count) }}</span>
-                    <span class="unit">cookies</span>
                 </div>
-                {% if leverage_display %}
-                <div class="leverage-display {{ leverage_class }}">
-                    {{ leverage_display }}
-                </div>
-                {% endif %}
             </div>
             
             <!-- Maintenance Margin Indicator -->
             <div class="maintenance-margin-container">
                 <div class="mm-header">
                     <span class="mm-percentage">{{ "%.1f"|format(maintenance_margin_percentage) }}%</span>
+                    {% if effective_leverage %}
+                    <span class="mm-risk">{{ "%.2f"|format(effective_leverage) }} risk</span>
+                    {% endif %}
                 </div>
                 <div class="mm-bar-background">
                     <div class="mm-bar-fill" 
