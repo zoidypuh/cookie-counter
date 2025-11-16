@@ -98,7 +98,7 @@ def siri_summary():
 
     if 'json' in (request.args.get('format') or '').lower():
         return jsonify({
-            'cookie_count': cookie_count
+            'cookie_count': round(cookie_count, 2)
         })
 
     # Return just the number formatted to 2 decimal places
