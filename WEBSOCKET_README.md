@@ -1,6 +1,6 @@
-# Bybit WebSocket Wallet Monitor Scripts
+# Bybit WebSocket Monitor Scripts
 
-Two scripts for monitoring your Bybit wallet in real-time via WebSocket connection.
+Scripts for monitoring your Bybit wallet and positions in real-time via WebSocket connection.
 
 ## Prerequisites
 
@@ -47,15 +47,47 @@ Simple monitor that shows raw JSON responses with syntax highlighting.
 python3 websocket_wallet_simple.py
 ```
 
-## WebSocket Wallet Stream Details
+### 3. websocket_position_monitor.py
+Real-time position monitor with formatted tables showing all your open positions.
 
+**Features:**
+- Real-time position updates
+- Detailed position information (size, entry price, mark price, PnL)
+- Liquidation price warnings
+- Color-coded profit/loss indicators
+- Position status tracking
+- Total unrealized/realized PnL summary
+- Support for all position types (linear, inverse, option)
+
+**Usage:**
+```bash
+python3 websocket_position_monitor.py
+```
+
+### 4. websocket_position_simple.py
+Simple position monitor that shows raw JSON responses with key metrics.
+
+**Features:**
+- Raw JSON display with syntax highlighting
+- Key position metrics extraction
+- Active positions summary
+- Minimal interface
+
+**Usage:**
+```bash
+python3 websocket_position_simple.py
+```
+
+## WebSocket Stream Details
+
+### Wallet Stream
 According to the [Bybit documentation](https://bybit-exchange.github.io/docs/v5/websocket/private/wallet), the wallet stream provides:
 
 - **Real-time updates** when wallet changes occur
 - **No snapshot** on initial connection (only updates)
 - **No updates** for unrealized PnL changes alone
 
-### Key Data Fields:
+**Key Data Fields:**
 - `totalEquity`: Total account equity in USD
 - `totalWalletBalance`: Sum of all asset balances in USD
 - `totalAvailableBalance`: Available balance for trading
@@ -63,25 +95,53 @@ According to the [Bybit documentation](https://bybit-exchange.github.io/docs/v5/
 - `totalMaintenanceMargin`: Total maintenance margin required
 - Individual coin balances with collateral status
 
+### Position Stream
+According to the [Bybit documentation](https://bybit-exchange.github.io/docs/v5/websocket/private/position), the position stream provides:
+
+- **Real-time updates** when positions change
+- **Updates trigger** on every order create/amend/cancel (even if no actual position change)
+- **Support for all position types**: linear, inverse, option
+- **All-In-One topic** or categorized topics available
+
+**Key Data Fields:**
+- `symbol`: Trading pair
+- `side`: Buy (long) or Sell (short)
+- `size`: Position size
+- `entryPrice`: Average entry price
+- `markPrice`: Current mark price
+- `unrealisedPnl`: Unrealized profit/loss
+- `liqPrice`: Liquidation price
+- `leverage`: Position leverage
+- `positionStatus`: Normal, Liq, or Adl
+
 ## Important: Why You Don't See Data Initially
 
-**The wallet stream does NOT send your current wallet state when connecting!**
+**Both wallet and position streams do NOT send current state when connecting!**
 
+### Wallet Stream
 You will only see updates when wallet changes occur:
 - Place or cancel an order
 - Execute a trade  
 - Deposit or withdraw funds
 - Any other action that changes wallet balance
 
-**The script is NOT stuck** - it's waiting for wallet changes to report.
+### Position Stream
+You will see updates when:
+- You create, modify, or cancel an order
+- A position is opened or closed
+- Position parameters change (leverage, margin, etc.)
+- Note: Updates occur even if the order doesn't result in actual position change
+
+**The scripts are NOT stuck** - they're waiting for changes to report.
 
 ## Testing
 
 To test if your connection is working:
-1. Run `websocket_wallet_test.py` to see a demo of what updates look like
-2. Go to Bybit and place a small limit order
-3. Cancel the order
-4. You should see wallet updates appear
+1. Run `websocket_wallet_test.py` to see a demo of what wallet updates look like
+2. Run `websocket_position_monitor.py` to monitor your positions
+3. Go to Bybit and place a small limit order
+4. Cancel the order
+5. You should see both wallet and position updates appear
 
 ## Notes
 
