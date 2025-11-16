@@ -52,6 +52,69 @@ main {
     color: #9E9E9E;
 }
 
+/* Maintenance Margin Indicator */
+.maintenance-margin-container {
+    width: 80%;
+    max-width: 900px;
+    margin: 20px auto 15px auto;
+    padding: 15px;
+    background: transparent;
+    border-radius: 10px;
+}
+
+.mm-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.mm-label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.mm-percentage {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.mm-bar-background {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.mm-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: background-color 0.3s ease;
+    border-radius: 10px;
+}
+
+.mm-bar-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.mm-marker {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2);
+}
+
 .chart-container {
     width: 80%;
     max-width: 900px;
@@ -181,16 +244,7 @@ main {
     }
 }
 
-.gif-container {
-    text-align: center;
-    margin-bottom: 30px;
-}
 
-.pnl-gif {
-    max-width: 450px;
-    height: auto;
-    display: inline-block;
-}
 
 .cookie-section {
     text-align: center;
@@ -226,55 +280,10 @@ main {
     font-size: 3rem;
     display: block;
     line-height: 1;
-    animation: cookieFall 2s ease-out forwards;
-    opacity: 0;
+    opacity: 1;
 }
 
-@keyframes cookieFall {
-    0% {
-        transform: translateY(-100vh) rotate(0deg);
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    70% {
-        transform: translateY(0) rotate(360deg);
-    }
-    80% {
-        transform: translateY(-30px) rotate(380deg);
-    }
-    90% {
-        transform: translateY(0) rotate(400deg);
-    }
-    95% {
-        transform: translateY(-10px) rotate(410deg);
-    }
-    100% {
-        transform: translateY(0) rotate(420deg);
-        opacity: 1;
-    }
-}
 
-/* Stagger the animations */
-.cookie-0 { animation-delay: 0s; }
-.cookie-1 { animation-delay: 0.1s; }
-.cookie-2 { animation-delay: 0.2s; }
-.cookie-3 { animation-delay: 0.3s; }
-.cookie-4 { animation-delay: 0.4s; }
-.cookie-5 { animation-delay: 0.5s; }
-.cookie-6 { animation-delay: 0.6s; }
-.cookie-7 { animation-delay: 0.7s; }
-.cookie-8 { animation-delay: 0.8s; }
-.cookie-9 { animation-delay: 0.9s; }
-.cookie-10 { animation-delay: 1.0s; }
-.cookie-11 { animation-delay: 1.1s; }
-.cookie-12 { animation-delay: 1.2s; }
-
-/* Continue pattern for more cookies */
-.cookie-emoji:nth-child(n+13) {
-    animation-delay: calc(1.3s + (0.1s * mod(var(--index), 10)));
-}
 
 .cookie-emoji:hover {
     transform: scale(1.1);
@@ -295,6 +304,19 @@ main {
         padding: 15px;
     }
     
+    .maintenance-margin-container {
+        width: 95%;
+        padding: 12px;
+    }
+    
+    .mm-label {
+        font-size: 0.85rem;
+    }
+    
+    .mm-percentage {
+        font-size: 1rem;
+    }
+    
     .cookie-count .count {
         font-size: 3rem;
     }
@@ -308,39 +330,13 @@ main {
         padding: 15px;
     }
     
-    @keyframes cookieFall {
-        0% {
-            transform: translateY(-100vh) translateX(calc(var(--x-offset, 0) * 0.5)) rotate(0deg);
-            opacity: 0;
-        }
-        10% {
-            opacity: 1;
-        }
-        70% {
-            transform: translateY(0) translateX(calc(var(--x-offset, 0) * 0.5)) rotate(360deg);
-        }
-        80% {
-            transform: translateY(-20px) translateX(calc(var(--x-offset, 0) * 0.5)) rotate(380deg);
-        }
-        90% {
-            transform: translateY(0) translateX(calc(var(--x-offset, 0) * 0.5)) rotate(400deg);
-        }
-        95% {
-            transform: translateY(-8px) translateX(calc(var(--x-offset, 0) * 0.5)) rotate(410deg);
-        }
-        100% {
-            transform: translateY(0) translateX(0) rotate(420deg);
-            opacity: 1;
-        }
-    }
+
     
     .cookie-emoji {
         font-size: 2.5rem;
     }
     
-    .pnl-gif {
-        max-width: 375px;
-    }
+
     
     .pnl-display.loss {
         font-size: 1.3rem;
@@ -369,9 +365,7 @@ main {
         font-size: 1rem;
     }
     
-    .pnl-gif {
-        max-width: 300px;
-    }
+
     
     .jar-label {
         font-size: 1.1rem;
@@ -404,6 +398,23 @@ main {
     .chart-container {
         background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
     }
+    
+    .maintenance-margin-container {
+        background: transparent;
+    }
+    
+    .mm-label {
+        color: #95a5a6;
+    }
+    
+    .mm-percentage {
+        color: #ecf0f1;
+    }
+    
+    .mm-bar-background {
+        background: #333;
+    }
+    
     body {
         background-color: #1a1a1a;
         color: #e0e0e0;

@@ -152,6 +152,15 @@ def get_cookie_data():
         equity = account_info['equity']
         pnl_24h = account_info.get('pnl_24h')
         pnl_24h_percentage = account_info.get('pnl_24h_percentage')
+        
+        # Get maintenance margin data
+        maintenance_margin = account_info.get('maintenance_margin', 0)
+        maintenance_margin_rate = account_info.get('maintenance_margin_rate', 0)
+        available_balance = account_info.get('available_balance', 0)
+        
+        # Calculate maintenance margin used percentage
+        # This shows how much of your equity is being used for maintenance margin
+        mm_used_percentage = (maintenance_margin / equity * 100) if equity > 0 else 0
         pnl_24h_source = account_info.get('pnl_24h_source', 'approx')
         pnl_24h_hours = account_info.get('pnl_24h_hours')
 
@@ -205,7 +214,6 @@ def get_cookie_data():
         primary_line = next((line for line in lines if line['class'] != 'neutral'), lines[0])
         pnl_color = primary_line['color']
         pnl_class = primary_line['class']
-        show_winning_gif = (one_hour_line['class'] == 'gain' and day_line['class'] == 'gain')
         
         headline_pct = pnl_24h_percentage if pnl_24h_source != 'missing' else pnl_1h_percentage
 
@@ -218,11 +226,11 @@ def get_cookie_data():
             'pnl_color': pnl_color,
             'pnl_class': pnl_class,
             'cookie_grid': cookie_grid,
-            'show_winning_gif': show_winning_gif,
             'chart_data': [], # Placeholder for chart data
             'effective_leverage': effective_leverage,
             'leverage_display': leverage_display,
-            'leverage_class': leverage_class
+            'leverage_class': leverage_class,
+            'maintenance_margin_percentage': mm_used_percentage
         }
     
     except:
@@ -235,11 +243,11 @@ def get_cookie_data():
             'pnl_color': 'gray',
             'pnl_class': 'neutral',
             'cookie_grid': [],
-            'show_winning_gif': False,
             'chart_data': [],
             'effective_leverage': None,
             'leverage_display': None,
-            'leverage_class': 'leverage-neutral'
+            'leverage_class': 'leverage-neutral',
+            'maintenance_margin_percentage': 0
         }
 
 @app.route('/')

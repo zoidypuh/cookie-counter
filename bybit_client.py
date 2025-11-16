@@ -82,6 +82,11 @@ class BybitClient:
 
             account_data = balance_response['result']['list'][0]
             total_equity_usd = float(account_data['totalEquity'])
+            
+            # Extract maintenance margin data
+            total_maintenance_margin = float(account_data.get('totalMaintenanceMargin', 0))
+            account_mm_rate = float(account_data.get('accountMMRate', 0))
+            total_available_balance = float(account_data.get('totalAvailableBalance', 0))
 
             now = datetime.now(timezone.utc)
 
@@ -218,7 +223,10 @@ class BybitClient:
                 'pnl_72h_hours': pnl_72h_hours,
                 'equity_snapshots': equity_data,
                 'currency': 'USD',
-                'effective_leverage': effective_leverage
+                'effective_leverage': effective_leverage,
+                'maintenance_margin': total_maintenance_margin,
+                'maintenance_margin_rate': account_mm_rate,
+                'available_balance': total_available_balance
             }
 
         except Exception as e:

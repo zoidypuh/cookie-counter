@@ -59,17 +59,6 @@
             
             // Store current status for next comparison
             localStorage.setItem('hourPnlStatus', currentHourStatus);
-            
-            // Handle cookie animation
-            if (sessionStorage.getItem('animationPlayed')) {
-                const cookies = document.querySelectorAll('.cookie-emoji');
-                cookies.forEach(cookie => {
-                    cookie.style.animation = 'none';
-                    cookie.style.opacity = '1';
-                });
-            } else {
-                sessionStorage.setItem('animationPlayed', 'true');
-            }
         });
     </script>
 </head>
@@ -87,6 +76,24 @@
                 </div>
                 {% endif %}
             </div>
+            
+            <!-- Maintenance Margin Indicator -->
+            <div class="maintenance-margin-container">
+                <div class="mm-header">
+                    <span class="mm-percentage">{{ "%.1f"|format(maintenance_margin_percentage) }}%</span>
+                </div>
+                <div class="mm-bar-background">
+                    <div class="mm-bar-fill" 
+                         style="width: 100%; 
+                                background: {% if maintenance_margin_percentage < 20 %}#4CAF50{% elif maintenance_margin_percentage < 50 %}#FF9800{% else %}#F44336{% endif %};">
+                    </div>
+                    <div class="mm-bar-markers">
+                        <span class="mm-marker" style="left: 20%"></span>
+                        <span class="mm-marker" style="left: 50%"></span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="chart-container">
                 <canvas id="cookieChart"></canvas>
             </div>
@@ -97,17 +104,6 @@
                     {% endfor %}
                 </div>
             </div>
-            
-            <div class="gif-container">
-                {% if show_winning_gif %}
-                    <img src="{{ url_for('static', filename='trump-winning.gif') }}" alt="Winning" class="pnl-gif">
-                {% else %}
-                    <img src="{{ url_for('static', filename='trump-losing.gif') }}" alt="Losing" class="pnl-gif">
-                {% endif %}
-            </div>
-            
-            <p></p>
-            <p></p>
             
             <div class="cookie-section">
                 <div class="jar-label">cookies still in jar</div>
