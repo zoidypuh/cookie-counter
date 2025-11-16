@@ -84,7 +84,7 @@
                 </div>
                 <div class="mm-bar-background">
                     <div class="mm-bar-fill" 
-                         style="width: 100%; 
+                         style="width: {{ [maintenance_margin_percentage, 100]|min }}%; 
                                 background: {% if maintenance_margin_percentage < 20 %}#4CAF50{% elif maintenance_margin_percentage < 50 %}#FF9800{% else %}#F44336{% endif %};">
                     </div>
                     <div class="mm-bar-markers">
@@ -104,23 +104,6 @@
                     {% endfor %}
                 </div>
             </div>
-            
-            <div class="cookie-section">
-                <div class="jar-label">cookies still in jar</div>
-                <div class="cookie-grid">
-                    {% for cookie in cookie_grid %}
-                    <div class="cookie-item">
-                        <span class="cookie-emoji cookie-{{ loop.index0 }}">🍪</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            {% if cookie_count == 0 %}
-            <div class="no-cookies-message">
-                <p>No cookies yet! 🥺</p>
-            </div>
-            {% endif %}
         </main>
     </div>
     
