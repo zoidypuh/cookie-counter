@@ -63,9 +63,30 @@ According to the [Bybit documentation](https://bybit-exchange.github.io/docs/v5/
 - `totalMaintenanceMargin`: Total maintenance margin required
 - Individual coin balances with collateral status
 
+## Important: Why You Don't See Data Initially
+
+**The wallet stream does NOT send your current wallet state when connecting!**
+
+You will only see updates when wallet changes occur:
+- Place or cancel an order
+- Execute a trade  
+- Deposit or withdraw funds
+- Any other action that changes wallet balance
+
+**The script is NOT stuck** - it's waiting for wallet changes to report.
+
+## Testing
+
+To test if your connection is working:
+1. Run `websocket_wallet_test.py` to see a demo of what updates look like
+2. Go to Bybit and place a small limit order
+3. Cancel the order
+4. You should see wallet updates appear
+
 ## Notes
 
 - The WebSocket connection will remain open until you stop the script (Ctrl+C)
 - Updates only appear when actual wallet changes occur (deposits, trades, etc.)
 - You may need to wait for trading activity to see updates
 - For testnet, make sure you have testnet API keys configured
+- Price movements alone do NOT trigger wallet updates (unrealized PnL changes are not sent)
