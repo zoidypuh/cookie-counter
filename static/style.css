@@ -64,7 +64,7 @@ main {
     left: 0;
     width: 100%;
     padding: 15px 0 20px 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 100;
 }
@@ -417,7 +417,7 @@ main {
     }
     
     .cookie-progress-header {
-        background: rgba(26, 26, 26, 0.95);
+        background: transparent;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
