@@ -36,12 +36,14 @@ main {
 
 /* Maintenance Margin Indicator */
 .maintenance-margin-container {
-    width: 80%;
-    max-width: 900px;
-    margin: 20px auto 15px auto;
-    padding: 15px;
-    background: transparent;
-    border-radius: 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px 0 20px 0;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 100;
 }
 
 .cookie-progress-header {
@@ -248,7 +250,7 @@ main {
 
 .pnl-container {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 140px;
 }
 
 .pnl-display {
@@ -310,8 +312,7 @@ main {
     }
     
     .maintenance-margin-container {
-        width: 95%;
-        padding: 12px;
+        padding: 12px 0 18px 0;
     }
     
     .mm-label {
@@ -397,7 +398,8 @@ main {
     }
     
     .maintenance-margin-container {
-        background: transparent;
+        background: rgba(26, 26, 26, 0.95);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .mm-title {
