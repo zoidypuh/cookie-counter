@@ -103,6 +103,16 @@
                 });
             }
             
+            // Update page background based on PnL
+            if (data.pnl_class) {
+                document.body.classList.remove('pnl-gain', 'pnl-loss', 'pnl-neutral');
+                if (data.pnl_class === 'gain') {
+                    document.body.classList.add('pnl-gain');
+                } else if (data.pnl_class === 'loss') {
+                    document.body.classList.add('pnl-loss');
+                }
+            }
+            
             // Update page title
             if (data.cookie_count !== undefined) {
                 document.title = data.cookie_count.toFixed(2);
@@ -234,6 +244,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script>
+        // Set initial page background based on PnL class
+        {% if pnl_class %}
+        document.body.classList.add('pnl-{{ pnl_class }}');
+        {% endif %}
+        
         let cookieChart = null;
         
         // Initialize cookie history chart
