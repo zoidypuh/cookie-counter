@@ -13,7 +13,7 @@ body {
 
 .container {
     width: 100%;
-    padding: 20px;
+    padding: 0 20px 20px 20px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -126,14 +126,6 @@ main {
     font-size: 1.1rem;
     font-weight: 700;
     color: #2c3e50;
-}
-
-.mm-title {
-    text-align: center;
-    font-size: 1.1rem;
-    color: #4CAF50;
-    font-weight: 400;
-    margin-bottom: 5px;
 }
 
 .mm-leverage {
@@ -421,10 +413,6 @@ main {
     
     .mm-leverage {
         color: #ecf0f1;
-    }
-    
-    .mm-title {
-        color: #4CAF50;
     }
     
     .chart-title {
