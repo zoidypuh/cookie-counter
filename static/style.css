@@ -90,7 +90,7 @@ main {
     top: 0;
     left: 0;
     height: 100%;
-    background: #4CAF50;
+    background: #2c3e50;
     transition: width 0.3s ease;
     border-radius: 0;
 }
