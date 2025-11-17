@@ -105,10 +105,13 @@
             
             // Update page background based on PnL
             if (data.pnl_class) {
+                document.documentElement.classList.remove('pnl-gain', 'pnl-loss', 'pnl-neutral');
                 document.body.classList.remove('pnl-gain', 'pnl-loss', 'pnl-neutral');
                 if (data.pnl_class === 'gain') {
+                    document.documentElement.classList.add('pnl-gain');
                     document.body.classList.add('pnl-gain');
                 } else if (data.pnl_class === 'loss') {
+                    document.documentElement.classList.add('pnl-loss');
                     document.body.classList.add('pnl-loss');
                 }
             }
@@ -246,6 +249,7 @@
     <script>
         // Set initial page background based on PnL class
         {% if pnl_class %}
+        document.documentElement.classList.add('pnl-{{ pnl_class }}');
         document.body.classList.add('pnl-{{ pnl_class }}');
         {% endif %}
         
