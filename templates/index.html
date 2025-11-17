@@ -163,27 +163,27 @@
     </script>
 </head>
 <body>
+    <!-- Cookie Progress Bar Header -->
+    <div class="cookie-progress-header">
+        <div class="progress-title">progress</div>
+        <div class="progress-bar-background">
+            <div class="progress-bar-fill" 
+                 style="width: {{ [(cookie_count / 1000 * 100), 100]|min }}%;">
+            </div>
+            <div class="progress-bar-markers">
+                <span class="progress-marker" style="left: 5%"></span>
+                <span class="progress-marker" style="left: 10%"></span>
+                <span class="progress-marker" style="left: 25%"></span>
+                <span class="progress-marker" style="left: 50%"></span>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
         <main>
             <div class="stats-container">
                 <div class="cookie-count">
                     <span class="count">{{ "%.2f"|format(cookie_count) }}</span>
-                </div>
-            </div>
-            
-            <!-- Cookie Progress Bar -->
-            <div class="cookie-progress-container">
-                <div class="progress-title">progress</div>
-                <div class="progress-bar-background">
-                    <div class="progress-bar-fill" 
-                         style="width: {{ [(cookie_count / 1000 * 100), 100]|min }}%;">
-                    </div>
-                    <div class="progress-bar-markers">
-                        <span class="progress-marker" style="left: 5%"></span>
-                        <span class="progress-marker" style="left: 10%"></span>
-                        <span class="progress-marker" style="left: 25%"></span>
-                        <span class="progress-marker" style="left: 50%"></span>
-                    </div>
                 </div>
             </div>
             
