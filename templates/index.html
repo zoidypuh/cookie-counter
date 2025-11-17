@@ -55,7 +55,7 @@
             // Update cookie progress bar
             const progressBarFill = document.querySelector('.progress-bar-fill');
             if (progressBarFill && data.cookie_count !== undefined) {
-                const progressPercentage = Math.min((data.cookie_count / 1000) * 100, 100);
+                const progressPercentage = Math.min((data.cookie_count / 100) * 100, 100);
                 progressBarFill.style.width = progressPercentage + '%';
             }
             
@@ -178,16 +178,16 @@
 <body>
     <!-- Cookie Progress Bar Header -->
     <div class="cookie-progress-header">
-        <div class="progress-title">progress</div>
+        <div class="progress-title">progress until current target of 100 cookies</div>
         <div class="progress-bar-background">
             <div class="progress-bar-fill" 
-                 style="width: {{ [(cookie_count / 1000 * 100), 100]|min }}%;">
+                 style="width: {{ [(cookie_count / 100 * 100), 100]|min }}%;">
             </div>
             <div class="progress-bar-markers">
-                <span class="progress-marker" style="left: 5%"></span>
-                <span class="progress-marker" style="left: 10%"></span>
                 <span class="progress-marker" style="left: 25%"></span>
                 <span class="progress-marker" style="left: 50%"></span>
+                <span class="progress-marker" style="left: 75%"></span>
+                <span class="progress-marker" style="left: 100%"></span>
             </div>
         </div>
     </div>

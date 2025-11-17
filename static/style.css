@@ -65,12 +65,11 @@ main {
 
 .progress-title {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #9E9E9E;
     font-weight: 600;
-    font-variant: small-caps;
     margin-bottom: 10px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .progress-bar-background {
