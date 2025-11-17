@@ -176,7 +176,7 @@
                 <div class="progress-title">progress</div>
                 <div class="progress-bar-background">
                     <div class="progress-bar-fill" 
-                         style="width: {{ [cookie_count / 10, 100]|min }}%;">
+                         style="width: {{ [(cookie_count / 1000 * 100), 100]|min }}%;">
                     </div>
                     <div class="progress-bar-markers">
                         <span class="progress-marker" style="left: 5%"></span>
