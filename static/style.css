@@ -15,11 +15,11 @@ html, body {
 }
 
 body.pnl-gain, html.pnl-gain {
-    background-color: rgba(76, 175, 80, 0.2) !important;
+    background-color: rgba(76, 175, 80, 0.1) !important;
 }
 
 body.pnl-loss, html.pnl-loss {
-    background-color: rgba(244, 67, 54, 0.2) !important;
+    background-color: rgba(244, 67, 54, 0.1) !important;
 }
 
 .container {
@@ -35,9 +35,10 @@ main {
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     padding-top: 40px;
+    padding-bottom: 180px;
 }
 
 .stats-container {
@@ -260,7 +261,13 @@ main {
 
 .pnl-container {
     text-align: center;
-    margin-bottom: 140px;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 20px 0;
 }
 
 .pnl-display {
@@ -295,7 +302,6 @@ main {
     font-weight: 700;
     text-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
     transform: scale(1.05);
-    background: rgba(76, 175, 80, 0.1);
     padding: 15px;
     border-radius: 8px;
 }
@@ -305,7 +311,6 @@ main {
     font-weight: 800;
     text-shadow: 0 2px 6px rgba(244, 67, 54, 0.4);
     animation: pulse 2s infinite;
-    background: rgba(244, 67, 54, 0.1);
     padding: 15px;
     border-radius: 8px;
 }
@@ -395,11 +400,11 @@ main {
 
 @media (prefers-color-scheme: dark) {
     body.pnl-gain, html.pnl-gain {
-        background-color: rgba(76, 175, 80, 0.25) !important;
+        background-color: rgba(76, 175, 80, 0.15) !important;
     }
     
     body.pnl-loss, html.pnl-loss {
-        background-color: rgba(244, 67, 54, 0.25) !important;
+        background-color: rgba(244, 67, 54, 0.15) !important;
     }
     
     .chart-container {
