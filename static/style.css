@@ -37,7 +37,7 @@ main {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding-top: 40px;
+    padding-top: 100px;
     padding-bottom: 180px;
 }
 
@@ -59,9 +59,14 @@ main {
 }
 
 .cookie-progress-header {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     padding: 15px 0 20px 0;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 100;
 }
 
 .progress-title {
@@ -218,7 +223,7 @@ main {
 .cookie-count .count {
     font-size: 5rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #000000;
     line-height: 1;
     transition: transform 0.3s ease, color 0.3s ease;
 }
@@ -412,7 +417,8 @@ main {
     }
     
     .cookie-progress-header {
-        background: transparent;
+        background: rgba(26, 26, 26, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .progress-title {
@@ -461,6 +467,6 @@ main {
     }
     
     .cookie-count .count {
-        color: #ecf0f1;
+        color: #000000;
     }
 }
