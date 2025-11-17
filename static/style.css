@@ -13,11 +13,11 @@ body {
 }
 
 body.pnl-gain {
-    background-color: rgba(76, 175, 80, 0.05);
+    background-color: rgba(76, 175, 80, 0.15) !important;
 }
 
 body.pnl-loss {
-    background-color: rgba(244, 67, 54, 0.05);
+    background-color: rgba(244, 67, 54, 0.15) !important;
 }
 
 .container {
@@ -394,11 +394,11 @@ main {
 
 @media (prefers-color-scheme: dark) {
     body.pnl-gain {
-        background-color: rgba(76, 175, 80, 0.08);
+        background-color: rgba(76, 175, 80, 0.2) !important;
     }
     
     body.pnl-loss {
-        background-color: rgba(244, 67, 54, 0.08);
+        background-color: rgba(244, 67, 54, 0.2) !important;
     }
     
     .chart-container {
