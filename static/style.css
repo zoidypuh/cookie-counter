@@ -15,11 +15,11 @@ html, body {
 }
 
 body.pnl-gain, html.pnl-gain {
-    background-color: rgba(76, 175, 80, 0.1) !important;
+    background-color: rgba(76, 175, 80, 0.03) !important;
 }
 
 body.pnl-loss, html.pnl-loss {
-    background-color: rgba(244, 67, 54, 0.1) !important;
+    background-color: rgba(244, 67, 54, 0.03) !important;
 }
 
 .container {
@@ -232,8 +232,8 @@ main {
 }
 
 .chart-section {
-    width: 100%;
-    margin: 30px 0 40px 0;
+    width: calc(100% + 40px);
+    margin: 30px -20px 40px -20px;
 }
 
 .chart-title {
@@ -443,17 +443,18 @@ main {
     }
     
     .chart-section {
-        margin: 20px 0 30px 0;
+        width: calc(100% + 30px);
+        margin: 20px -15px 30px -15px;
     }
 }
 
 @media (prefers-color-scheme: dark) {
     body.pnl-gain, html.pnl-gain {
-        background-color: rgba(76, 175, 80, 0.15) !important;
+        background-color: rgba(76, 175, 80, 0.05) !important;
     }
     
     body.pnl-loss, html.pnl-loss {
-        background-color: rgba(244, 67, 54, 0.15) !important;
+        background-color: rgba(244, 67, 54, 0.05) !important;
     }
     
     .chart-container {
