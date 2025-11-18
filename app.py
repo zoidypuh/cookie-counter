@@ -18,7 +18,7 @@ CACHE_DURATION = 1  # seconds
 # Global chart data storage
 chart_history = []
 chart_lock = Lock()
-MAX_CHART_POINTS = 600  # 10 minutes at 1s intervals (600s / 1s)
+MAX_CHART_POINTS = 3600  # 60 minutes at 1s intervals (3600s / 1s)
 
 # Global Bybit client instance
 bybit_client = None
