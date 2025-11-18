@@ -82,11 +82,51 @@
         updateEquityPnlBar();
         setInterval(updateEquityPnlBar, 1000);
         
+        // Animated number component inspired by NumberFlow
+        let currentCookieValue = {{ cookie_count }};
+        let animationFrameId = null;
+        
+        function animateNumber(element, targetValue, duration = 750) {
+            // Cancel any ongoing animation
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            
+            const startValue = currentCookieValue;
+            const difference = targetValue - startValue;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Smooth easing function (ease-out cubic)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentValue = startValue + (difference * easeOut);
+                
+                // Format with 2 decimal places
+                element.textContent = currentValue.toFixed(2);
+                
+                if (progress < 1) {
+                    animationFrameId = requestAnimationFrame(update);
+                } else {
+                    element.textContent = targetValue.toFixed(2);
+                    currentCookieValue = targetValue;
+                    animationFrameId = null;
+                }
+            }
+            
+            animationFrameId = requestAnimationFrame(update);
+        }
+        
         function updateUI(data) {
-            // Update cookie count
+            // Update cookie count with animation
             const countElement = document.querySelector('.cookie-count .count');
-            if (countElement) {
-                countElement.textContent = data.cookie_count.toFixed(2);
+            if (countElement && data.cookie_count !== undefined) {
+                const targetValue = data.cookie_count;
+                if (Math.abs(targetValue - currentCookieValue) > 0.001) {
+                    animateNumber(countElement, targetValue, 750);
+                }
             }
             
             // Update cookie progress bar

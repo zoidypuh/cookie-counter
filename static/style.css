@@ -270,6 +270,8 @@ main {
     color: #000000;
     line-height: 1;
     transition: transform 0.3s ease, color 0.3s ease;
+    font-variant-numeric: tabular-nums; /* Prevents digit shifting during transitions */
+    will-change: contents; /* Optimize for frequent updates */
 }
 
 .pnl-line.pnl-flip-gain {
