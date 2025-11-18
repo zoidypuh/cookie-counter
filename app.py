@@ -18,9 +18,9 @@ CACHE_DURATION = 1  # seconds
 # Global chart data storage
 chart_history = []
 chart_lock = Lock()
-# Store 3 days of data at 10-second intervals: 3 days * 24 hours * 360 intervals/hour = 25,920 points
+# Store 1 hour of data at 10-second intervals: 1 hour * 3600 seconds / 10 = 360 points
 CHART_INTERVAL_SECONDS = 10  # Store a point every 10 seconds
-MAX_CHART_POINTS = 25920  # 3 days at 10s intervals (3 * 24 * 3600 / 10)
+MAX_CHART_POINTS = 360  # 1 hour at 10s intervals (3600 / 10)
 last_chart_update = 0  # Track last chart update time
 
 # Global Bybit client instance
@@ -57,8 +57,8 @@ def update_chart_history(cookie_count):
             if len(chart_history) > MAX_CHART_POINTS:
                 chart_history = chart_history[-MAX_CHART_POINTS:]
             
-            # Also remove points older than 3 days
-            cutoff_time = current_time - (3 * 24 * 3600)  # 3 days ago
+            # Also remove points older than 1 hour
+            cutoff_time = current_time - 3600  # 1 hour ago
             chart_history = [p for p in chart_history if p['timestamp'] >= cutoff_time]
 
 def get_chart_data():
