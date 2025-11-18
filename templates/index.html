@@ -62,6 +62,15 @@
                         // Set PnL bar width and position (starts after equity)
                         pnlBar.style.width = data.pnl_percentage + '%';
                         pnlBar.style.left = data.equity_percentage + '%';
+                        
+                        // Set PnL bar color based on sign: orange for negative, light blue for positive
+                        if (data.unrealized_pnl < 0) {
+                            pnlBar.style.background = '#FF9800'; // Orange for negative
+                        } else if (data.unrealized_pnl > 0) {
+                            pnlBar.style.background = '#4FC3F7'; // Light blue for positive
+                        } else {
+                            pnlBar.style.background = '#FF9800'; // Default to orange if zero
+                        }
                     }
                 })
                 .catch(error => {

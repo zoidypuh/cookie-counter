@@ -81,8 +81,8 @@ main {
     position: absolute;
     top: 0;
     height: 100%;
-    background: #FF9800;
-    transition: width 0.3s ease, left 0.3s ease;
+    background: #FF9800; /* Default orange for negative PnL */
+    transition: width 0.3s ease, left 0.3s ease, background-color 0.3s ease;
     border-radius: 0;
     z-index: 2;
 }
