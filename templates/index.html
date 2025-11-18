@@ -8,6 +8,11 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text x='50%25' y='50%25' font-size='48' text-anchor='middle' dominant-baseline='central'>🍪</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script>
         // Update data every 1 second without page reload
         let errorCount = 0;
@@ -82,50 +87,21 @@
         updateEquityPnlBar();
         setInterval(updateEquityPnlBar, 1000);
         
-        // Animated number component inspired by NumberFlow
-        let currentCookieValue = {{ cookie_count }};
-        let animationFrameId = null;
-        
-        function animateNumber(element, targetValue, duration = 750) {
-            // Cancel any ongoing animation
-            if (animationFrameId !== null) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            
-            const startValue = currentCookieValue;
-            const difference = targetValue - startValue;
-            const startTime = performance.now();
-            
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Smooth easing function (ease-out cubic)
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentValue = startValue + (difference * easeOut);
-                
-                // Format with 2 decimal places
-                element.textContent = currentValue.toFixed(2);
-                
-                if (progress < 1) {
-                    animationFrameId = requestAnimationFrame(update);
-                } else {
-                    element.textContent = targetValue.toFixed(2);
-                    currentCookieValue = targetValue;
-                    animationFrameId = null;
-                }
-            }
-            
-            animationFrameId = requestAnimationFrame(update);
-        }
+        // NumberFlow React component - will be initialized by module script
+        window.cookieCountValue = {{ cookie_count }};
+        window.NumberFlowRoot = null;
+        window.updateCookieCount = null;
         
         function updateUI(data) {
-            // Update cookie count with animation
-            const countElement = document.querySelector('.cookie-count .count');
-            if (countElement && data.cookie_count !== undefined) {
-                const targetValue = data.cookie_count;
-                if (Math.abs(targetValue - currentCookieValue) > 0.001) {
-                    animateNumber(countElement, targetValue, 750);
+            // Update cookie count with NumberFlow
+            if (window.updateCookieCount && data.cookie_count !== undefined) {
+                window.cookieCountValue = data.cookie_count;
+                window.updateCookieCount(data.cookie_count);
+            } else {
+                // Fallback
+                const countElement = document.querySelector('.cookie-count .count');
+                if (countElement && data.cookie_count !== undefined) {
+                    countElement.textContent = data.cookie_count.toFixed(2);
                 }
             }
             
@@ -251,6 +227,39 @@
             localStorage.setItem('hourPnlStatus', currentHourStatus);
         });
     </script>
+    <script type="module">
+        // Initialize NumberFlow React component
+        try {
+            const { default: NumberFlow } = await import('https://esm.sh/@number-flow/react@1.0.0');
+            
+            const cookieCountRoot = document.getElementById('cookie-count-root');
+            if (cookieCountRoot) {
+                const initialValue = window.cookieCountValue || 0;
+                const root = ReactDOM.createRoot(cookieCountRoot);
+                
+                const renderNumberFlow = (value) => {
+                    root.render(React.createElement(NumberFlow, {
+                        value: value,
+                        format: { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                    }));
+                };
+                
+                // Initial render
+                renderNumberFlow(initialValue);
+                
+                // Expose update function to global scope
+                window.updateCookieCount = renderNumberFlow;
+                window.NumberFlowRoot = root;
+            }
+        } catch (error) {
+            console.error('Error loading NumberFlow:', error);
+            // Fallback to plain text
+            const countElement = document.querySelector('.cookie-count .count');
+            if (countElement) {
+                countElement.textContent = (window.cookieCountValue || 0).toFixed(2);
+            }
+        }
+    </script>
 </head>
 <body>
     <!-- Cookie Progress Bar Header -->
@@ -273,7 +282,7 @@
         <main>
             <div class="stats-container">
                 <div class="cookie-count">
-                    <span class="count">{{ "%.2f"|format(cookie_count) }}</span>
+                    <span id="cookie-count-root" class="count">{{ "%.2f"|format(cookie_count) }}</span>
                 </div>
             </div>
             
