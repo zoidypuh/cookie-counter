@@ -18,7 +18,10 @@ CACHE_DURATION = 1  # seconds
 # Global chart data storage
 chart_history = []
 chart_lock = Lock()
-MAX_CHART_POINTS = 3600  # 60 minutes at 1s intervals (3600s / 1s)
+# Store 3 days of data at 10-second intervals: 3 days * 24 hours * 360 intervals/hour = 25,920 points
+CHART_INTERVAL_SECONDS = 10  # Store a point every 10 seconds
+MAX_CHART_POINTS = 25920  # 3 days at 10s intervals (3 * 24 * 3600 / 10)
+last_chart_update = 0  # Track last chart update time
 
 # Global Bybit client instance
 bybit_client = None
@@ -37,18 +40,26 @@ def get_bybit_client():
     return bybit_client
 
 def update_chart_history(cookie_count):
-    """Update chart history with new data point"""
-    global chart_history
+    """Update chart history with new data point (sampled at CHART_INTERVAL_SECONDS)"""
+    global chart_history, last_chart_update
     with chart_lock:
-        timestamp = time.time()
-        chart_history.append({
-            'timestamp': timestamp,
-            'value': cookie_count
-        })
-        
-        # Keep only last MAX_CHART_POINTS
-        if len(chart_history) > MAX_CHART_POINTS:
-            chart_history = chart_history[-MAX_CHART_POINTS:]
+        current_time = time.time()
+        # Only add a point if enough time has passed (sampling)
+        if current_time - last_chart_update >= CHART_INTERVAL_SECONDS:
+            timestamp = current_time
+            chart_history.append({
+                'timestamp': timestamp,
+                'value': cookie_count
+            })
+            last_chart_update = current_time
+            
+            # Keep only last MAX_CHART_POINTS
+            if len(chart_history) > MAX_CHART_POINTS:
+                chart_history = chart_history[-MAX_CHART_POINTS:]
+            
+            # Also remove points older than 3 days
+            cutoff_time = current_time - (3 * 24 * 3600)  # 3 days ago
+            chart_history = [p for p in chart_history if p['timestamp'] >= cutoff_time]
 
 def get_chart_data():
     """Get chart data for frontend"""
@@ -262,6 +273,10 @@ def get_cookie_data(use_cache=True):
         day_line = format_change_line(
             pnl_24h, pnl_24h_percentage, 'last 24 hours', pnl_24h_source, pnl_24h_hours)
         lines.append(day_line)
+        # Add 3-day (72h) line
+        three_day_line = format_change_line(
+            pnl_72h, pnl_72h_percentage, 'last 3 days', pnl_72h_source, pnl_72h_hours)
+        lines.append(three_day_line)
 
         pnl_text = ' '.join(line['text'] for line in lines)
         
