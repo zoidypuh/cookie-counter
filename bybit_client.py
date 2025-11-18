@@ -82,7 +82,7 @@ class BybitClient:
 
             account_data = balance_response['result']['list'][0]
             total_equity_usd = float(account_data['totalEquity'])
-            
+
             # Extract maintenance margin data
             total_maintenance_margin = float(account_data.get('totalMaintenanceMargin', 0))
             account_mm_rate = float(account_data.get('accountMMRate', 0))
@@ -234,6 +234,20 @@ class BybitClient:
             return None
     
     
+    def get_current_unrealized_pnl(self) -> Optional[float]:
+        """Get current unrealized PnL from wallet balance"""
+        try:
+            balance_response = self.get_wallet_balance()
+            if not balance_response or balance_response['retCode'] != 0:
+                return None
+            
+            account_data = balance_response['result']['list'][0]
+            total_perp_upl = float(account_data.get('totalPerpUPL', '0'))
+            return total_perp_upl
+        except Exception as e:
+            print(f"Error getting unrealized PnL: {e}")
+            return None
+    
     def get_pnl_data(self) -> Optional[Dict]:
         try:
             response = self.client.get_closed_pnl(
@@ -256,10 +270,12 @@ class BybitClient:
                     realized_pnl = float(trade.get('closedPnl', '0'))
                     today_realized_pnl += realized_pnl
             
+            unrealized_pnl = self.get_current_unrealized_pnl() or 0
+            
             return {
                 'today_pnl': today_realized_pnl,
                 'realized_pnl': today_realized_pnl,
-                'unrealized_pnl': 0
+                'unrealized_pnl': unrealized_pnl
             }
             
         except:

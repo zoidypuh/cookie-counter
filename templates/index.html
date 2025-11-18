@@ -45,6 +45,34 @@
             }
         });
         
+        function updateEquityPnlBar() {
+            fetch('/api/equity-pnl')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    const equityBar = document.getElementById('equityBarFill');
+                    const pnlBar = document.getElementById('pnlBarFill');
+                    
+                    if (equityBar && pnlBar && data.total > 0) {
+                        // Set equity bar width
+                        equityBar.style.width = data.equity_percentage + '%';
+                        
+                        // Set PnL bar width and position (starts after equity)
+                        pnlBar.style.width = data.pnl_percentage + '%';
+                        pnlBar.style.left = data.equity_percentage + '%';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching equity/PnL data:', error);
+                });
+        }
+        
+        // Update equity/PnL bar on initial load and then every second
+        updateEquityPnlBar();
+        setInterval(updateEquityPnlBar, 1000);
+        
         function updateUI(data) {
             // Update cookie count
             const countElement = document.querySelector('.cookie-count .count');
@@ -197,6 +225,14 @@
             <div class="stats-container">
                 <div class="cookie-count">
                     <span class="count">{{ "%.2f"|format(cookie_count) }}</span>
+                </div>
+            </div>
+            
+            <!-- Equity/PnL Progress Bar -->
+            <div class="equity-pnl-container">
+                <div class="equity-pnl-bar-background">
+                    <div class="equity-pnl-bar-equity" id="equityBarFill" style="width: 0%;"></div>
+                    <div class="equity-pnl-bar-pnl" id="pnlBarFill" style="width: 0%; left: 0%;"></div>
                 </div>
             </div>
             
