@@ -6,6 +6,8 @@ entrypoint: gunicorn -b :$PORT app:app --timeout 120
 
 env_variables:
   FLASK_ENV: "production"
+  BYBIT_API_KEY: "GSUJ1MAAWbJ7qRU60b"
+  BYBIT_API_SECRET: "GoXEAT3XuCudFEGjqZpNSvc01inMZYY2IbGk"
 
 automatic_scaling:
   target_cpu_utilization: 0.65
