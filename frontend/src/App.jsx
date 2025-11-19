@@ -167,7 +167,7 @@ function App() {
             max={100}
             label=""
             markers={[25, 50, 75]}
-            color="var(--accent-orange)"
+            color="#C0C0C0"
             noMargin={true}
           />
         </div>
