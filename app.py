@@ -1,11 +1,11 @@
 import os
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from bybit_client import BybitClient
 import time
 from threading import Lock
 from datetime import datetime, timedelta
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='frontend/dist', static_url_path='', template_folder='frontend/dist')
 
 # Global cache for API data
 cache = {
@@ -402,8 +402,8 @@ def api_equity_pnl():
 
 @app.route('/')
 def index():
-    cookie_data = get_cookie_data(use_cache=False)  # Don't use cache on initial page load
-    return render_template('index.html', **cookie_data)
+    # Serve React frontend
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
