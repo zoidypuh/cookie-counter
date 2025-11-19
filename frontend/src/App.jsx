@@ -36,6 +36,13 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Update page title with cookie count
+  useEffect(() => {
+    if (data?.cookie_count !== undefined) {
+      document.title = `${data.cookie_count.toFixed(2)} cookies`;
+    }
+  }, [data?.cookie_count]);
+
   if (loading && !data) {
     return (
       <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -62,23 +69,25 @@ function App() {
     }}>
       {/* Progress Bar - 10% (at top) */}
       <div style={{
-        height: '10vh',
+        height: 'auto',
         margin: 0,
         borderRadius: 0,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        padding: '1rem 2rem 0 2rem',
-        background: 'transparent'
+        padding: '0.5rem 2rem 0 2rem',
+        background: 'transparent',
+        marginBottom: 0
       }}>
-        <div style={{ width: '90%' }}>
+        <div style={{ width: '90%', marginBottom: 0 }}>
           <ProgressBar
             value={data?.cookie_count || 0}
             max={100}
             label=""
             markers={[25, 50, 75]}
             color="var(--accent-orange)"
+            noMargin={true}
           />
         </div>
       </div>

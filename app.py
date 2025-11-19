@@ -400,6 +400,21 @@ def api_equity_pnl():
             'pnl_percentage': 0
         })
 
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Serve static assets from frontend/dist/assets"""
+    return send_from_directory('frontend/dist/assets', filename)
+
+@app.route('/favicon.svg')
+def serve_favicon():
+    """Serve favicon from static folder"""
+    return send_from_directory('static', 'favicon.svg')
+
+@app.route('/vite.svg')
+def serve_vite_svg():
+    """Serve vite.svg icon"""
+    return send_from_directory('frontend/dist', 'vite.svg')
+
 @app.route('/')
 def index():
     # Serve React frontend
