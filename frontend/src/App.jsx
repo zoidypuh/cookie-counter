@@ -60,6 +60,29 @@ function App() {
       padding: 0,
       gap: 0
     }}>
+      {/* Progress Bar - 10% (at top) */}
+      <div style={{
+        height: '10vh',
+        margin: 0,
+        borderRadius: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        padding: '1rem 2rem 0 2rem',
+        background: 'transparent'
+      }}>
+        <div style={{ width: '90%' }}>
+          <ProgressBar
+            value={data?.cookie_count || 0}
+            max={100}
+            label=""
+            markers={[25, 50, 75]}
+            color="var(--accent-orange)"
+          />
+        </div>
+      </div>
+
       {/* Risk Metrics - 30% */}
       <div className="glass-card" style={{
         height: '30vh',
@@ -136,29 +159,6 @@ function App() {
 
         <div className="glass-card" style={{ margin: 0, borderRadius: 0, padding: '1rem' }}>
           <PnLDisplay lines={data?.pnl_lines} pnlClass={data?.pnl_class} />
-        </div>
-      </div>
-
-      {/* Progress Bar - 10% (at bottom) */}
-      <div style={{
-        height: '10vh',
-        margin: 0,
-        borderRadius: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        padding: '0 2rem 1rem 2rem',
-        background: 'transparent'
-      }}>
-        <div style={{ width: '90%' }}>
-          <ProgressBar
-            value={data?.cookie_count || 0}
-            max={100}
-            label=""
-            markers={[25, 50, 75]}
-            color="var(--accent-orange)"
-          />
         </div>
       </div>
     </div>
