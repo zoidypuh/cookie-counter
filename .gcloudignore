@@ -24,7 +24,7 @@ DEPLOYMENT_INSTRUCTIONS.md
 percentage_explanation.md
 deploy.sh
 
-# Frontend - exclude node_modules and source, include only dist
+# Frontend - exclude node_modules and source, include dist folder
 frontend/node_modules/
 frontend/src/
 frontend/public/
@@ -32,3 +32,4 @@ frontend/*.config.js
 frontend/package*.json
 frontend/.gitignore
 frontend/README.md
+# Note: frontend/dist/ is included for deployment
