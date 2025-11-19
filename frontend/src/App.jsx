@@ -7,13 +7,67 @@ import ProgressBar from './components/ProgressBar';
 import CircularProgress from './components/CircularProgress';
 import RiskGauge from './components/RiskGauge';
 
+const CACHE_KEY = 'bybit_cookie_data_cache';
+const CACHE_HOUR_KEY = 'bybit_cookie_data_hour';
+
 function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get current hour as a string identifier (YYYY-MM-DD-HH)
+  const getCurrentHour = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}`;
+  };
+
+  // Load cached data from localStorage
+  const loadCachedData = () => {
+    try {
+      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      
+      if (cachedHour && cachedData) {
+        const currentHour = getCurrentHour();
+        // If we're still in the same hour, use cached data
+        if (cachedHour === currentHour) {
+          return JSON.parse(cachedData);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading cached data:", err);
+    }
+    return null;
+  };
+
+  // Save data to localStorage
+  const saveCachedData = (dataToCache) => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+      localStorage.setItem(CACHE_HOUR_KEY, getCurrentHour());
+    } catch (err) {
+      console.error("Error saving cached data:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    // Try to load cached data first
+    const cachedData = loadCachedData();
+    if (cachedData) {
+      setData(cachedData);
+      setLoading(false);
+    }
+
+    const fetchData = async (forceRefresh = false) => {
+      const currentHour = getCurrentHour();
+      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
+      
+      // Only fetch if we're in a new hour or forced refresh
+      if (!forceRefresh && cachedHour === currentHour) {
+        // Use cached data, no need to fetch
+        return;
+      }
+
       try {
         const response = await fetch('/api/data');
         if (!response.ok) {
@@ -21,17 +75,44 @@ function App() {
         }
         const jsonData = await response.json();
         setData(jsonData);
+        saveCachedData(jsonData);
         setError(null);
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError("Failed to fetch data");
+        // If fetch fails and we have cached data, use it
+        const cached = loadCachedData();
+        if (cached) {
+          setData(cached);
+        } else {
+          setError("Failed to fetch data");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 1000);
+    // Initial fetch (will use cache if available and same hour)
+    const currentHour = getCurrentHour();
+    const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
+    
+    if (cachedHour === currentHour && cachedData) {
+      // Same hour, use cache - no fetch needed
+      fetchData(false);
+    } else {
+      // New hour or no cache, fetch fresh data
+      fetchData(true);
+    }
+
+    // Check every 10 seconds if we need to refresh (when hour changes)
+    const interval = setInterval(() => {
+      const currentHour = getCurrentHour();
+      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
+      
+      // If hour changed, fetch new data
+      if (cachedHour !== currentHour) {
+        fetchData(true);
+      }
+    }, 10000); // Check every 10 seconds for hour changes
 
     return () => clearInterval(interval);
   }, []);
