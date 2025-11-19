@@ -23,4 +23,12 @@ README.md
 DEPLOYMENT_INSTRUCTIONS.md
 percentage_explanation.md
 deploy.sh
-frontend/
+
+# Frontend - exclude node_modules and source, include only dist
+frontend/node_modules/
+frontend/src/
+frontend/public/
+frontend/*.config.js
+frontend/package*.json
+frontend/.gitignore
+frontend/README.md
