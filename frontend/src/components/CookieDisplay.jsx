@@ -1,12 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { NumericFormat } from 'react-number-format';
 
 const CookieDisplay = ({ count }) => {
   const [displayCount, setDisplayCount] = useState(count || 0);
+  const [color, setColor] = useState('#4CAF50'); // Default green
+  const previousCountRef = useRef(count || 0);
 
   useEffect(() => {
     if (count === undefined) return;
+
+    // Determine color based on change direction
+    const previousCount = previousCountRef.current;
+    if (count > previousCount) {
+      setColor('#4CAF50'); // Green for going up
+    } else if (count < previousCount) {
+      setColor('#F44336'); // Red for going down
+    }
+    // If equal, keep the previous color
+
+    // Update previous count
+    previousCountRef.current = count;
 
     // Animate the number change
     const startValue = displayCount;
@@ -40,11 +54,13 @@ const CookieDisplay = ({ count }) => {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <h1 className="cookie-number text-gradient-gold" style={{
+        <h1 className="cookie-number" style={{
           fontSize: '5rem',
           margin: 0,
           lineHeight: '1',
-          textShadow: '0 0 40px rgba(255, 215, 0, 0.15)'
+          color: color,
+          textShadow: `0 0 40px ${color}40`,
+          transition: 'color 0.3s ease, text-shadow 0.3s ease'
         }}>
           <NumericFormat
             value={displayCount}

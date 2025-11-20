@@ -142,7 +142,7 @@ function App() {
             value={data?.cookie_count || 0}
             max={100}
             label=""
-            markers={[25, 50, 75]}
+            markers={[25, 50, 75, 100]}
             color="#C0C0C0"
             noMargin={true}
           />
