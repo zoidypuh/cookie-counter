@@ -1,17 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Color mapping for cookie milestones
-const getMarkerColor = (value) => {
-    if (value === 25) return '#8B4513'; // Brown
-    if (value === 50) return '#CD7F32'; // Bronze
-    if (value === 75) return '#C0C0C0'; // Silver
-    if (value === 100) return '#FFD700'; // Gold
-    return '#9E9E9E'; // Default gray
+// Get progress bar color based on percentage
+const getProgressColor = (percentage) => {
+    if (percentage <= 25) {
+        return '#8B4513'; // Wood color
+    } else if (percentage <= 50) {
+        return '#CD7F32'; // Bronze
+    } else if (percentage <= 75) {
+        return '#C0C0C0'; // Silver
+    } else {
+        return '#FFD700'; // Gold
+    }
 };
 
 const ProgressBar = ({ value, max = 100, color = 'var(--accent-green)', label, markers = [], noMargin = false }) => {
     const percentage = Math.min((value / max) * 100, 100);
+    const progressColor = getProgressColor(percentage);
 
     return (
         <div style={{ marginBottom: noMargin ? 0 : '1.5rem', textAlign: 'left', width: '100%' }}>
@@ -42,10 +47,11 @@ const ProgressBar = ({ value, max = 100, color = 'var(--accent-green)', label, m
                     transition={{ duration: 1, ease: "easeOut" }}
                     style={{
                         height: '100%',
-                        background: color,
+                        background: progressColor,
                         borderRadius: '6px',
-                        boxShadow: `0 0 15px ${color}`,
-                        position: 'relative'
+                        boxShadow: `0 0 15px ${progressColor}`,
+                        position: 'relative',
+                        transition: 'background 0.3s ease, box-shadow 0.3s ease'
                     }}
                 >
                     {/* Shimmer effect */}
@@ -59,43 +65,31 @@ const ProgressBar = ({ value, max = 100, color = 'var(--accent-green)', label, m
                         transform: 'skewX(-20deg)',
                         animation: 'shimmer 2s infinite'
                     }} />
-                    
-                    {/* Percentage display inside the progress bar */}
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        fontSize: '0.7rem',
-                        fontWeight: '600',
-                        color: '#fff',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                        whiteSpace: 'nowrap',
-                        zIndex: 10
-                    }}>
-                        {percentage.toFixed(1)}%
-                    </div>
                 </motion.div>
 
-                {/* Cookie milestone markers (no labels) */}
-                {markers.map((marker, i) => {
-                    const markerPercentage = (marker / max) * 100;
-                    const markerColor = getMarkerColor(marker);
-                    return (
-                        <div key={i} style={{
+                {markers.map((marker, i) => (
+                    <div key={i} style={{
+                        position: 'absolute',
+                        left: `${marker}%`,
+                        top: 0,
+                        bottom: 0,
+                        width: '1px',
+                        background: 'rgba(255,255,255,0.1)',
+                        zIndex: 2
+                    }}>
+                        <div style={{
                             position: 'absolute',
-                            left: `${markerPercentage}%`,
-                            top: 0,
-                            bottom: 0,
-                            width: '2px',
-                            background: markerColor,
-                            zIndex: 2,
-                            boxShadow: `0 0 4px ${markerColor}`
-                        }} />
-                    );
-                })}
+                            top: '14px',
+                            left: '-50%',
+                            transform: 'translateX(-50%)',
+                            fontSize: '0.7rem',
+                            color: 'var(--text-muted)'
+                        }}>
+                            {marker}%
+                        </div>
+                    </div>
+                ))}
             </div>
-
             <style>{`
         @keyframes shimmer {
             0% { transform: translateX(-100%) skewX(-20deg); }

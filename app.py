@@ -289,9 +289,15 @@ def get_cookie_data(use_cache=True):
         
         headline_pct = pnl_24h_percentage if pnl_24h_source != 'missing' else pnl_1h_percentage
 
+        # Get unrealized PnL for display
+        unrealized_pnl = client.get_current_unrealized_pnl() or 0
+        unrealized_pnl_cookies = unrealized_pnl / 1000  # Convert to cookies
+
         result = {
             'cookie_count': cookie_count,
             'equity': equity,
+            'unrealized_pnl': unrealized_pnl,
+            'unrealized_pnl_cookies': unrealized_pnl_cookies,
             'pnl_percentage': headline_pct,
             'pnl_text': pnl_text,
             'pnl_lines': lines,
@@ -317,6 +323,8 @@ def get_cookie_data(use_cache=True):
         error_result = {
             'cookie_count': 0,
             'equity': 0,
+            'unrealized_pnl': 0,
+            'unrealized_pnl_cookies': 0,
             'pnl_percentage': 0,
             'pnl_text': 'No data available right now.',
             'pnl_lines': [{'text': 'No data available right now.', 'class': 'neutral', 'color': NEUTRAL_COLOR}],

@@ -20,7 +20,6 @@ VENV/
 app.temp.yaml
 app.secure.yaml
 app.production.yaml
-app.yaml
 
 # IDE
 .vscode/

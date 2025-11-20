@@ -208,7 +208,11 @@ function App() {
         justifyContent: 'center',
         padding: '1rem'
       }}>
-        <CookieDisplay count={data?.cookie_count} />
+        <CookieDisplay 
+          count={data?.cookie_count} 
+          equity={data?.equity}
+          unrealizedPnlCookies={data?.unrealized_pnl_cookies}
+        />
       </div>
 
       {/* Performance Chart + PnL - 30% */}
