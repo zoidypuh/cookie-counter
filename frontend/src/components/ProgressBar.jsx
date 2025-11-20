@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const ProgressBar = ({ value, max = 100, color = 'var(--accent-green)', label, markers = [] }) => {
+const ProgressBar = ({ value, max = 100, color = 'var(--accent-green)', label, markers = [], noMargin = false }) => {
     const percentage = Math.min((value / max) * 100, 100);
 
     return (
-        <div style={{ marginBottom: '1.5rem', textAlign: 'left', width: '100%' }}>
+        <div style={{ marginBottom: noMargin ? 0 : '1.5rem', textAlign: 'left', width: '100%' }}>
             {label && (
                 <div style={{
                     marginBottom: '0.8rem',

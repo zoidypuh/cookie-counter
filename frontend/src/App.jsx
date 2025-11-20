@@ -51,23 +51,14 @@ function App() {
   };
 
   useEffect(() => {
-    // Try to load cached data first
+    // Try to load cached data first for immediate display
     const cachedData = loadCachedData();
     if (cachedData) {
       setData(cachedData);
       setLoading(false);
     }
 
-    const fetchData = async (forceRefresh = false) => {
-      const currentHour = getCurrentHour();
-      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
-      
-      // Only fetch if we're in a new hour or forced refresh
-      if (!forceRefresh && cachedHour === currentHour) {
-        // Use cached data, no need to fetch
-        return;
-      }
-
+    const fetchData = async () => {
       try {
         const response = await fetch('/api/data');
         if (!response.ok) {
@@ -91,28 +82,13 @@ function App() {
       }
     };
 
-    // Initial fetch (will use cache if available and same hour)
-    const currentHour = getCurrentHour();
-    const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
-    
-    if (cachedHour === currentHour && cachedData) {
-      // Same hour, use cache - no fetch needed
-      fetchData(false);
-    } else {
-      // New hour or no cache, fetch fresh data
-      fetchData(true);
-    }
+    // Initial fetch immediately
+    fetchData();
 
-    // Check every 10 seconds if we need to refresh (when hour changes)
+    // Fetch data every second to keep cookies counter and chart updated
     const interval = setInterval(() => {
-      const currentHour = getCurrentHour();
-      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
-      
-      // If hour changed, fetch new data
-      if (cachedHour !== currentHour) {
-        fetchData(true);
-      }
-    }, 10000); // Check every 10 seconds for hour changes
+      fetchData();
+    }, 1000); // Update every second
 
     return () => clearInterval(interval);
   }, []);
