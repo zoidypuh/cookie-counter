@@ -1,11 +1,11 @@
 import os
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from bybit_client import BybitClient
 import time
 from threading import Lock
 from datetime import datetime, timedelta
 
-app = Flask(__name__, static_folder='frontend/dist', static_url_path='', template_folder='frontend/dist')
+app = Flask(__name__, static_folder='frontend/dist', static_url_path='')
 
 # Global cache for API data
 cache = {
@@ -426,7 +426,7 @@ def serve_vite_svg():
 @app.route('/')
 def index():
     # Serve React frontend
-    return render_template('index.html')
+    return send_from_directory('frontend/dist', 'index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

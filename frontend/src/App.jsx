@@ -216,18 +216,18 @@ function App() {
       </div>
 
       {/* Performance Chart + PnL - 30% */}
-      <div style={{
+      <div className="chart-pnl-container" style={{
         height: '30vh',
         display: 'grid',
         gridTemplateColumns: '2fr 1fr',
         gap: 0,
         margin: 0
       }}>
-        <div className="glass-card" style={{ margin: 0, borderRadius: 0, padding: '1rem' }}>
+        <div className="glass-card chart-container" style={{ margin: 0, borderRadius: 0, padding: '1rem' }}>
           <ChartDisplay data={data?.chart_data} />
         </div>
 
-        <div className="glass-card" style={{ margin: 0, borderRadius: 0, padding: '1rem' }}>
+        <div className="glass-card pnl-container-mobile" style={{ margin: 0, borderRadius: 0, padding: '1rem' }}>
           <PnLDisplay lines={data?.pnl_lines} pnlClass={data?.pnl_class} />
         </div>
       </div>

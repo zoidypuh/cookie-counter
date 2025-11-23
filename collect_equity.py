@@ -90,26 +90,10 @@ def cleanup_old_snapshots(ds, current_time):
 
 def get_24h_equity_data(ds=None):
     """Get equity data for the last 24 hours (for testing/debugging)"""
-    ds = ds or init_datastore()
-    if not ds:
-        return []
-
     try:
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
-
-        query = ds.query(kind=KIND)
-        query.add_filter('timestamp', '>=', cutoff_time)
-        query.order = ['-timestamp']
-
-        data = []
-        for entity in query.fetch():
-            data.append({
-                'timestamp': entity['timestamp'],
-                'equity': entity['equity']
-            })
-
-        return data
-
+        # Use BybitClient's method to avoid code duplication
+        client = BybitClient(use_datastore=True)
+        return client.get_snapshot_data(24, ds)
     except Exception as e:
         print(f"❌ Error fetching 24h data: {e}")
         return []

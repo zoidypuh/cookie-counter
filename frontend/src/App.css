@@ -165,4 +165,25 @@ h4 {
   h3 {
     font-size: 1.1rem;
   }
+
+  /* Mobile: Stack chart and PnL vertically */
+  .chart-pnl-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+    gap: 0 !important;
+  }
+
+  .chart-container {
+    width: 100% !important;
+    height: 20vh !important;
+    margin-bottom: 0 !important;
+  }
+
+  .pnl-container-mobile {
+    width: 100% !important;
+    height: auto !important;
+    margin-top: 0 !important;
+    padding: 1rem !important;
+  }
 }
