@@ -8,17 +8,19 @@ import os
 from datetime import datetime, timezone, timedelta
 from google.cloud import datastore
 from dotenv import load_dotenv
-from bybit_client import BybitClient
+from bybit_client import BybitClient, KIND_EQUITY
 
 # Load environment variables
 load_dotenv()
 
-KIND = 'EquitySnapshot'
-
 def init_datastore():
-    """Initialize Datastore client"""
+    """Initialize Datastore client (uses same logic as BybitClient)"""
     if os.getenv('GAE_ENV'):
-        return datastore.Client()
+        try:
+            return datastore.Client()
+        except Exception as e:
+            print(f"⚠️  Datastore init failed: {e}")
+            return None
     else:
         print("⚠️  Local mode - Datastore not initialized")
         return None
@@ -43,7 +45,7 @@ def collect_equity_snapshot():
         # Store in Datastore
         ds = init_datastore()
         if ds:
-            key = ds.key(KIND, hour_key)
+            key = ds.key(KIND_EQUITY, hour_key)
             entity = datastore.Entity(key=key)
             entity.update({
                 'timestamp': now,
@@ -57,7 +59,7 @@ def collect_equity_snapshot():
             # Local mode - just print
             print(f"📊 Local mode - would store: ${current_equity:.2f} at {now}")
 
-        # Clean up old snapshots (keep only last 25 hours)
+        # Clean up old snapshots (keep only last 75 hours for 3-day window)
         cleanup_old_snapshots(ds, now)
 
         return True
@@ -74,7 +76,7 @@ def cleanup_old_snapshots(ds, current_time):
     try:
         cutoff_time = current_time - timedelta(hours=75)
 
-        query = ds.query(kind=KIND)
+        query = ds.query(kind=KIND_EQUITY)
         query.add_filter('timestamp', '<', cutoff_time)
 
         deleted = 0

@@ -356,58 +356,6 @@ def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'ok', 'cache_duration': CACHE_DURATION})
 
-@app.route('/api/equity-pnl')
-def api_equity_pnl():
-    """API endpoint for equity and PnL data for progress bar"""
-    try:
-        client = get_bybit_client()
-        if not client:
-            return jsonify({
-                'equity': 0,
-                'unrealized_pnl': 0,
-                'total': 0,
-                'equity_percentage': 0,
-                'pnl_percentage': 0
-            })
-        
-        # Get account info for equity
-        account_info = client.get_account_info()
-        if not account_info:
-            return jsonify({
-                'equity': 0,
-                'unrealized_pnl': 0,
-                'total': 0,
-                'equity_percentage': 0,
-                'pnl_percentage': 0
-            })
-        
-        equity = account_info.get('equity', 0)
-        unrealized_pnl = client.get_current_unrealized_pnl() or 0
-        abs_pnl = abs(unrealized_pnl)
-        total = equity + abs_pnl
-        
-        # Calculate percentages
-        equity_percentage = (equity / total * 100) if total > 0 else 0
-        pnl_percentage = (abs_pnl / total * 100) if total > 0 else 0
-        
-        return jsonify({
-            'equity': equity,
-            'unrealized_pnl': unrealized_pnl,
-            'abs_pnl': abs_pnl,
-            'total': total,
-            'equity_percentage': equity_percentage,
-            'pnl_percentage': pnl_percentage
-        })
-    except Exception as e:
-        print(f"Error in api_equity_pnl: {e}")
-        return jsonify({
-            'equity': 0,
-            'unrealized_pnl': 0,
-            'total': 0,
-            'equity_percentage': 0,
-            'pnl_percentage': 0
-        })
-
 @app.route('/assets/<path:filename>')
 def serve_assets(filename):
     """Serve static assets from frontend/dist/assets"""

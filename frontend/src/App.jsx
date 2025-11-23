@@ -8,31 +8,18 @@ import CircularProgress from './components/CircularProgress';
 import RiskGauge from './components/RiskGauge';
 
 const CACHE_KEY = 'bybit_cookie_data_cache';
-const CACHE_HOUR_KEY = 'bybit_cookie_data_hour';
 
 function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get current hour as a string identifier (YYYY-MM-DD-HH)
-  const getCurrentHour = () => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}`;
-  };
-
   // Load cached data from localStorage
   const loadCachedData = () => {
     try {
-      const cachedHour = localStorage.getItem(CACHE_HOUR_KEY);
       const cachedData = localStorage.getItem(CACHE_KEY);
-      
-      if (cachedHour && cachedData) {
-        const currentHour = getCurrentHour();
-        // If we're still in the same hour, use cached data
-        if (cachedHour === currentHour) {
-          return JSON.parse(cachedData);
-        }
+      if (cachedData) {
+        return JSON.parse(cachedData);
       }
     } catch (err) {
       console.error("Error loading cached data:", err);
@@ -44,7 +31,6 @@ function App() {
   const saveCachedData = (dataToCache) => {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
-      localStorage.setItem(CACHE_HOUR_KEY, getCurrentHour());
     } catch (err) {
       console.error("Error saving cached data:", err);
     }
